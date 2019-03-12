@@ -1,2 +1,2 @@
-# Code_and_Presentations
+# Code and Presentations
 Curios, coding snippets, and completed projects.
