@@ -1,0 +1,2 @@
+
+A couple of useful snippets taken from various projects and notebooks.
