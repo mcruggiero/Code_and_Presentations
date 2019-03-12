@@ -1,4 +1,4 @@
-//Here is the code I worked out for a beautiful puzzle box based on the Arduino, a Tim1638, and
+//Here is the code I worked out for a beautiful puzzle box based on the Arduino, 
 //DHT22 Humitity Sensor, photoresistor, and 
 
 #include <DHT.h>
