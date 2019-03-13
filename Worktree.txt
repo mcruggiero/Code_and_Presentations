@@ -1,93 +1,13 @@
-Current Work Tree (March 12th, 2019)
+Current Work Tree (March 13th, 2019)
 ├── C++
 │   ├── Arduino
-│   │   └── ESC_Complete
-│   │       └── ESC_Complete.ino
 │   ├── Unity
-│   │   ├── Chip_Packing_Video.mov
-│   │   ├── Potato_Chip_Simulator_Mac.01.13.17.app
-│   │   │   └── Contents
-│   │   │       ├── Data
-│   │   │       │   └── Managed
-│   │   │       │       └── etc
-│   │   │       │           └── mono
-│   │   │       │               ├── 1.0
-│   │   │       │               │   ├── DefaultWsdlHelpGenerator.aspx
-│   │   │       │               │   └── machine.config
-│   │   │       │               ├── 2.0
-│   │   │       │               │   ├── Browsers
-│   │   │       │               │   │   └── Compat.browser
-│   │   │       │               │   ├── DefaultWsdlHelpGenerator.aspx
-│   │   │       │               │   ├── machine.config
-│   │   │       │               │   ├── settings.map
-│   │   │       │               │   └── web.config
-│   │   │       │               ├── browscap.ini
-│   │   │       │               ├── config
-│   │   │       │               └── mconfig
-│   │   │       │                   └── config.xml
-│   │   │       ├── Frameworks
-│   │   │       │   └── MonoEmbedRuntime
-│   │   │       │       └── osx
-│   │   │       │           ├── libMonoPosixHelper.dylib
-│   │   │       │           └── libmono.0.dylib
-│   │   │       ├── Info.plist
-│   │   │       ├── MacOS
-│   │   │       │   └── ChipAndDip\ (Mac)_.01.13.17
-│   │   │       ├── Plugins
-│   │   │       │   └── ConvexDecompositionDll.bundle
-│   │   │       │       ├── Contents
-│   │   │       │       │   ├── Info.plist
-│   │   │       │       │   ├── Info.plist.meta
-│   │   │       │       │   ├── MacOS
-│   │   │       │       │   │   ├── ConvexDecompositionDll
-│   │   │       │       │   │   └── ConvexDecompositionDll.meta
-│   │   │       │       │   └── MacOS.meta
-│   │   │       │       └── Contents.meta
-│   │   │       └── Resources
-│   │   │           ├── Ageia.tif
-│   │   │           ├── Data
-│   │   │           │   ├── Managed
-│   │   │           │   │   ├── Assembly-CSharp.dll
-│   │   │           │   │   ├── Mono.Security.dll
-│   │   │           │   │   ├── System.Core.dll
-│   │   │           │   │   ├── System.dll
-│   │   │           │   │   ├── UnityEngine.Networking.dll
-│   │   │           │   │   ├── UnityEngine.PlaymodeTestsRunner.dll
-│   │   │           │   │   ├── UnityEngine.UI.dll
-│   │   │           │   │   ├── UnityEngine.dll
-│   │   │           │   │   ├── UnityEngine.dll.mdb
-│   │   │           │   │   ├── UnityEngine.xml
-│   │   │           │   │   └── mscorlib.dll
-│   │   │           │   ├── Resources
-│   │   │           │   │   └── unity_builtin_extra
-│   │   │           │   ├── globalgamemanagers
-│   │   │           │   ├── globalgamemanagers.assets
-│   │   │           │   ├── level0
-│   │   │           │   ├── level0.resS
-│   │   │           │   ├── sharedassets0.assets
-│   │   │           │   └── sharedassets0.assets.resS
-│   │   │           ├── DefaultPreferences.plist
-│   │   │           ├── KeyConfig.nib
-│   │   │           │   ├── classes.nib
-│   │   │           │   ├── info.nib
-│   │   │           │   └── keyedobjects.nib
-│   │   │           ├── MainMenu.nib
-│   │   │           │   ├── classes.nib
-│   │   │           │   ├── info.nib
-│   │   │           │   └── keyedobjects.nib
-│   │   │           ├── Mono.tif
-│   │   │           ├── ScreenSelector.nib
-│   │   │           │   ├── classes.nib
-│   │   │           │   ├── info.nib
-│   │   │           │   └── keyedobjects.nib
-│   │   │           ├── UnityPlayerIcon.png
-│   │   │           └── unity\ default\ resources
-│   │   └── readme.md
 │   └── notes.md
 ├── Michael_Ruggiero_Resume.pdf
 ├── R
 │   └── readme
 ├── README.md
+├── Worktree.txt
 ├── achievements
 │   ├── Beijing\ Opera.jpg
 │   ├── Casen\ and\ me.jpg
@@ -111,14 +31,7 @@ Current Work Tree (March 12th, 2019)
 │   └── SAT_Performance.pdf
 ├── python
 │   ├── Taoist_Learner
-│   │   ├── Tao.py
-│   │   ├── Tao3.csv
-│   │   └── readme.md
 │   ├── notes.txt
 │   └── pdf_dataminer
-│       ├── SAT_PDF_DataMiner.ipynb
-│       ├── SAT_PDF_DataMiner.py
-│       ├── combined_2017.csv
-│       └── readme
 └── scala
     └── readme
