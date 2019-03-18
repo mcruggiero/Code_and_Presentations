@@ -1,4 +1,4 @@
-Current Work Tree (March 14th, 2019)
+Current Work Tree (March 18th, 2019)
 ├── C++
 │   ├── Arduino
 │   ├── Unity
@@ -30,9 +30,12 @@ Current Work Tree (March 14th, 2019)
 │   ├── One_Path_Forward.pdf
 │   └── SAT_Performance.pdf
 ├── python
+│   ├── Chess_Analysis
 │   ├── Codewars
+│   ├── Pdf_Dataminer
+│   ├── Regression\ Models
 │   ├── Taoist_Learner
-│   ├── notes.txt
-│   └── pdf_dataminer
+│   └── notes.txt
 └── scala
     └── readme
+
