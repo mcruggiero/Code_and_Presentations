@@ -1,0 +1,16 @@
+### Project objective and process
+
+The objective of the project is to provide the most up to date information about road incidents. This information becomes especially critical in emergency situations. 
+
+Twitter and Google maps are a power couple  capable of delivering the information we need. Whereas, Twitter has indisputably become a source of most up to date  information, Google maps have the most comprehensive coverage of all roads worldwide. 
+The API's of both have been leverage upon to build our solution. 
+Twitter's API allows queries about specific location along with key search words (e.g. road closed, delay, etc.)
+
+Example: 
+In[]: place_ld:'unique identifier' road closed
+Out[]: running late road M16 closed. 
+
+On the other hand, Google maps's, with a simple API query, provides information about the distance, travel time and alternative  routes between any origin and destination. 
+Our solution leverages on both APIs by identifying a link between the closed road mentioned in the Twitter account and the proposed (alternative) route suggested by Google maps. 
+
+If we assume that at  the fire fighters are called for an evacuation mission, as they check for the fastest/safest route toward their destination, the road flagged by Twitter will show in the Google map query in red( signaling a non advisable route) and will show the corresponding tweet. The second fastest route will be suggested (in bold).  Other clear routes will also show in green color.
