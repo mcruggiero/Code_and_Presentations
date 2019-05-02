@@ -1,19 +1,17 @@
-Current Work Tree (March 27th, 2019)
+Current Work Tree (May 2nd, 2019)
+.
 .
 ├── C++
 │   ├── Arduino
 │   ├── Unity
 │   └── notes.md
-├── Michael_Ruggiero_Resume.pdf
-├── R
-│   └── readme
+├── Michael_Ruggiero_CV.pdf
 ├── README.md
 ├── Worktree.txt
 ├── achievements
 │   ├── Beijing\ Opera.jpg
 │   ├── Casen\ and\ me.jpg
 │   ├── Certificate\ of\ Election.pdf
-│   ├── Chess\ Stats.jpg
 │   ├── Code\ Wars.jpg
 │   ├── Harvard_Speach_Awards.pdf
 │   ├── Tai\ Chi\ in\ China.jpg
@@ -30,13 +28,11 @@ Current Work Tree (March 27th, 2019)
 │   ├── 2017Campaign.pdf
 │   ├── One_Path_Forward.pdf
 │   └── SAT_Performance.pdf
-├── python
-│   ├── Chess_Analysis
-│   ├── Codewars
-│   ├── Pdf_Dataminer
-│   ├── Project_Euler
-│   ├── Regression\ Models
-│   ├── Taoist_Learner
-│   └── notes.txt
-└── scala
-    └── readme
+└── python
+    ├── Codewars
+    ├── Disaster_Planner
+    ├── Pdf_Dataminer
+    ├── Politics_subreddit
+    ├── Project_Euler
+    ├── Regression\ Models
+    └── Taoist_Learner
