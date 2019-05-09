@@ -1,0 +1,110 @@
+%%%%%%%%%%%%%%%%%
+% Insired by
+% LianTze Lim template.
+% 
+%%%%%%%%%%%%%%%%
+
+\PassOptionsToPackage{dvipsnames}{xcolor}
+\documentclass[10pt,letterpaper]{altacv}
+\geometry{left=1cm,right=9cm,marginparwidth=6.8cm,marginparsep=1.2cm,top=1.25cm,bottom=1.25cm,footskip=2\baselineskip}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[default]{lato}
+\usepackage{multicol}
+
+\definecolor{Mulberry}{HTML}{400013}
+\definecolor{SlateGrey}{HTML}{000000}
+\definecolor{LightGrey}{HTML}{373737}
+\colorlet{heading}{Sepia}
+\colorlet{accent}{Mulberry}
+\colorlet{emphasis}{SlateGrey}
+\colorlet{body}{LightGrey}
+
+\renewcommand{\itemmarker}{{\small\textbullet}}
+
+\usepackage[colorlinks]{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=red!25!black
+}
+
+\begin{document}
+
+\name{Michael C. Ruggiero}
+\tagline{Data Scientist}
+\photo{2.8cm}{Data}
+\personalinfo{
+  \email{michael@mcruggiero.com }
+  \phone{781-866-2191}
+  \homepage{www.mcruggiero.com}
+  \github{github.com/mcruggiero}
+}
+
+\begin{fullwidth}
+\makecvheader
+\end{fullwidth}
+
+\cvsection[page1sidebar]{Projects}
+
+\smallskip
+
+\cvevent{Efficient Packing: \textbf{C++, Python}}{}{}{}
+\begin{itemize}
+\item Collaborated with Dr. Sinha from MIT to simulate packing for Lay's Chips.
+\item Calculated moments of inertia and dynamic friction inside Blender engine. 
+\item Scanned actual chips using 3D scanners and Mathematica visualizations.
+\end{itemize}
+
+\divider
+
+\cvevent{Disaster Simulation: \textbf{Python, Osmnx}}{}{}{}{}
+\begin{itemize}
+\item Identified road closures based on Twitter and MassDOT API.
+\item Simulated traffic based on four times of day with Google API.
+\item Generated disaster and optimized dispatch for police and rescue.
+\end{itemize}
+
+\divider
+
+\cvevent{Natural Language Processing: \textbf{Python, TF-IDF}}{}{}{}{}
+\begin{itemize}
+\item Scrapped 2000 partisan subreddits for essential information.
+\item Calculated relationship between emotion and participation.
+\item Built CountVectorizer pipeline for Logistic Regression analysis.
+\end{itemize}
+
+\divider
+
+\cvevent{Campaign Planning: \textbf{Python, scikit-learn}}{}{}{}{}
+\begin{itemize}
+\item Charted canvassing strategies with councilor Breanna Lungo-Koehn. 
+\item Built interactive database for technical and non technical volunteers. 
+\item Organized and scheduled optimal routes for multiple canvassers. 
+\end{itemize}
+
+\cvsection{Experience}
+\cvevent{\textbf{Data Scientist}}{D$\star$Day Data}{2015 -- Present}{Medford, Massachusetts}{}
+
+
+
+\divider
+
+\cvevent{\textbf{Mathematics Teacher}}{Harmony School of Fine Art}{2012 -- 2013}{Houston, Texas}{}
+
+
+
+\divider
+
+\cvevent{\textbf{Mathematics Department Head}}{University of Shanghai}{2007 --  2009}{Shanghai, China}{}
+
+\divider
+
+\cvevent{\textbf{Mathematics Teacher}}{Meg's English}{2005 -- 2007}{Incheon, Korea}{}
+
+\medskip
+
+\clearpage
+
+\end{document}
