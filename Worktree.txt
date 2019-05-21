@@ -1,37 +1,62 @@
-Current Work Tree (May 4th, 2019)
+Current Work Tree (May 20th, 2019)
 .
 ├── C++
 │   ├── Arduino
-│   ├── Unity
-│   └── notes.md
-├── Michael_Ruggiero_CV.pdf
-├── README.md
-├── Worktree.txt
+│   │   └── ESC_Complete
+│   └── Unity
+│       ├── Chips
+│       │   └── AforA
+│       └── Potato_Chip_Simulator_Mac.01.13.17.app
+│           └── Contents
+│               ├── Data
+│               │   └── Managed
+│               │       └── etc
+│               │           └── mono
+│               │               ├── 1.0
+│               │               ├── 2.0
+│               │               │   └── Browsers
+│               │               └── mconfig
+│               ├── Frameworks
+│               │   └── MonoEmbedRuntime
+│               │       └── osx
+│               ├── MacOS
+│               ├── Plugins
+│               │   └── ConvexDecompositionDll.bundle
+│               │       └── Contents
+│               │           └── MacOS
+│               └── Resources
+│                   ├── Data
+│                   │   ├── Managed
+│                   │   └── Resources
+│                   ├── KeyConfig.nib
+│                   ├── MainMenu.nib
+│                   └── ScreenSelector.nib
+├── Latex-CV
 ├── achievements
-│   ├── Beijing\ Opera.jpg
-│   ├── Casen\ and\ me.jpg
-│   ├── Certificate\ of\ Election.pdf
-│   ├── Code\ Wars.jpg
-│   ├── Harvard_Speach_Awards.pdf
-│   ├── Tai\ Chi\ in\ China.jpg
-│   ├── Tai_Chi_Gold_Metal.jpg
-│   ├── The\ Farm.jpg
-│   └── readme.md
 ├── mathematica
-│   ├── Mathematica_Chip.nb
-│   ├── Potato_Chip2.nb
-│   ├── map_generator.nb
-│   ├── maze_generator.nb
-│   └── notes.txt
 ├── presentations
-│   ├── 2017Campaign.pdf
-│   ├── One_Path_Forward.pdf
-│   └── SAT_Performance.pdf
-└── python
-    ├── Codewars
-    ├── Disaster_Planner
-    ├── Pdf_Dataminer
-    ├── Politics_subreddit
-    ├── Project_Euler
-    ├── Regression\ Models
-    └── Taoist_Learner
+├── python
+│   ├── Codewars
+│   ├── Disaster_Planner
+│   │   ├── History
+│   │   │   ├── Dali
+│   │   │   ├── Other_Information
+│   │   │   │   ├── Mass511
+│   │   │   │   │   └── cimga
+│   │   │   │   └── Twitter:Google
+│   │   │   ├── csv
+│   │   │   ├── ipynb
+│   │   │   │   └── TBDeleted
+│   │   │   └── json
+│   │   └── __pycache__
+│   ├── Pdf_Dataminer
+│   ├── Politics_subreddit
+│   │   └── Images
+│   ├── Project_Euler
+│   ├── PyTorch
+│   ├── Regression\ Models
+│   └── Taoist_Learner
+├── scala
+│   ├── Classifier
+│   └── NLP_Pipeline
+└── sql
