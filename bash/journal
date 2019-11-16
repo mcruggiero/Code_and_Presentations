@@ -1,0 +1,128 @@
+#!/usr/bin/env python
+import glob
+from datetime import datetime
+import os
+import shutil
+
+os.chdir('/media/data/Documents')
+
+for filename in glob.glob("*.jnl"):
+    entry = open(filename, "a+")
+
+def writer(item):
+    return entry.write("\n" + item + " " + input(item))
+
+now = datetime.now()
+entry.write("\n\t\t----Date----\n\n" + now.strftime("%A %B %d, %Y, %H:%m") + "\n")
+
+mindset = input("Review outlook? (y/n) ")
+
+if 4 <= now.hour < 17 and mindset == "y":
+    entry.write(format("\n\t\t----Morning Outlook----"))
+
+    q0 = "\nToday's personal message: "
+    writer(q0)
+
+    q0a = "\nToday's Top Three Goals: "
+    writer(q0a)
+
+    q0b = "\nWhat must be done today: "
+    writer(q0b)
+
+    q0c = "\nPersonal relationships I need to deepen today: "
+    writer(q0c)
+
+    q1 = "\nWhat is something that excites me today: "
+    writer(q1)
+
+    q2 = "\nWhat word do you want to use to describe yourself today? Why? "
+    writer(q2)
+
+    q3 = "\nWhat is a potential pitfall today? "
+    writer(q3)
+
+    q4 = "\nHow could I deal with that challenge: "
+    writer(q4)
+
+    q5 = "\nWho could I surprise with a token of affection? "
+    writer(q5)
+
+    q6 = "\nWhat is something that I could do to demonstrate excellence? "
+    writer(q6)
+
+    q7 = "\nHow could I do something brave today: "
+    writer(q7)
+
+    q8 = "\nHow will I coach myself? "
+    writer(q8)
+
+    q9 = "\nWhat are some of the projects that I need to keep on the back-burner? "
+    writer(q9)
+
+    q10 = "\nToday will be a success if I am able to do: "
+    writer(q10)
+
+    q10a = "\nWhen will you work our physically? "
+    writer(q10a)
+
+if 16 <= now.hour or now.hour < 4 and mindset == "y":
+    entry.write(format("\n\t\t----Evening Outlook----"))
+
+    q11 = "\nSomething that I can be grateful for today: "
+    writer(q11)
+
+    q12 = "\nWhat situation did I crush today? "
+    writer(q12)
+
+    q13 = "\nWhat was something I learned today? "
+    writer(q13)
+
+    q14 = "\nSomething I could have done to make today even better? "
+    writer(q14)
+
+    q15 = "\nWhat could I have done to help me become more connected to people? "
+    writer(q15)
+
+    q16 = "\nIn once sentence, how would I summarize today? "
+    writer(q16)
+
+    q17 = "\nDid you workout? "
+    writer(q17)
+
+    #Report CARD
+    s1 = "\nI lived intentionally today, score 1-5 \n\t*CLARITY: "
+    writer(s1)
+
+    s2 = "\nI focused on what matters, score 1-5 \n\t*PRODUCTIVITY: "
+    writer(s2)
+
+    s3 = "\nI managed my physical, mental and spiritual energy today, score 1-5 \n\t*ENERGY: "
+    writer(s3)
+
+    s4 = "\nI guided and treated others with respect, score 1-5 \n\t*INFLUENCE: "
+    writer(s4)
+
+    s5 = "\nI focused on my best self, score 1-5 \n\t*FOCUS: "
+    writer(s5)
+
+    s6 = "\nI opened my real self, showing my thoughts and feelings, score 1-5 \n\t*BRAVERY: "
+    writer(s6)
+
+tasks = input("Enter Tasks? (y/n) ")
+
+if tasks == "y":
+    entry.write(format("\n\n\t\t----Tasks----\n"))
+    amount = int(input("how many tasks to enter? "))
+    amount = range(1,amount+1)
+    for i in amount:
+        task = "\nTask " + str(i) + ": "
+        writer(task)
+
+j_enter = input("Do you want to add journal notes? (y/n)")
+
+if j_enter == "y":
+    entry.write(format("\n\n\t\t----Personal----\n\n"))
+    entry.write(format("\n\n\t\t----Family----\n\n"))
+    entry.write(format("\n\n\t\t----Farm----\n\n"))
+    entry.write(format("\n\n\t\t----Community----\n\n"))
+    entry.write(format("\n\n\t\t----Professional----\n\n"))

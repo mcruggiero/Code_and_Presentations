@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# gnome-terminal --full-screen
+clear
+
+#View calendar
+khal calendar
+
+#Set up conda environment
+eval "$(conda shell.bash hook)"
+conda activate pytorch
+sudo mount /dev/sda1 /media/data
+cd /media/data/Documents
+#export PATH="$PATH:/media/data/Documents/Development/flutter/bin"
+
+#Memory Test
+echo Would you like to test your memory, type y/n
+read mem
+if [ $mem = y ]
+then
+	memory
+fi
+
+#Journal Work
+echo "What are we writing about today? (type n to quit jounral)"
+read title
+if [ $title != n ]
+then
+	journal_name=$(date +%Y.%m.%d.%H.$title.jnl)
+
+	#Set up first line of Journal
+	echo -e '\n\t\t'----Entry---- >> $journal_name
+	todo list >> $journal_name
+	journal
+	mv $journal_name /media/data/Documents/Journal
+	cd Journal
+
+	#Review entry
+	vim -c "set wrap ruler number spell" /media/data/Documents/Journal/$journal_name
+
+	#Review complete journal
+	cat *.jnl > journal.complete
+	vim -c "set wrap ruler number spell" /media/data/Documents/Journal/journal.complete
+	rm journal.complete
+fi
+
+tar -cvpzf /media/data/Documents/Backup/journalbackup.tar.gz /media/data/Documents/Journal
+
+#Push journal to github
+git add .
+git commit -m "$journal_name added"
+git push
