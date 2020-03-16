@@ -13,7 +13,10 @@ import time
 
 
 def main():
-    board_size = 9
+    #Added a prompt for board size, comment out for 
+    #The board size of 9
+    #board_size = 9
+    board_size = int(input("What size for the board? "))
     game = goboard.GameState.new_game(board_size)
     bots = {
         gotypes.Player.black: agent.naive.RandomBot(),
@@ -28,7 +31,7 @@ def main():
         bot_move = bots[game.next_player].select_move(game)
         
         #Commented out the print_move since it made an unpleasant jiggering of printout 
-        #print_move(game.next_player, bot_move)
+        print_move(game.next_player, bot_move)
         game = game.apply_move(bot_move)
 
 

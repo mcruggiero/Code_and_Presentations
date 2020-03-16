@@ -1,10 +1,16 @@
-#This is a little magic function to write this field into a file
+
+#I added all of the library loading in one place to help with 
+#Readability
+
+###
+#START of Listing 3.1
+##
 
 import enum
 from collections import namedtuple
 
 #This __all__ is just a list of all of the different classes
-#In module 
+#to help load the module
 
 __all__ = [
     'Player',
@@ -23,6 +29,10 @@ class Player(enum.Enum):
     
 ###
 #END of Listing 3.1
+###
+
+###
+#START of Listing 3.2
 ###
 
 class Point(namedtuple('Point', 'row col')):
