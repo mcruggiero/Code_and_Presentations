@@ -1,4 +1,9 @@
 
+###
+#Start Listing 3.15
+###
+
+
 # tag::helpersimport[]
 from dlgo.gotypes import Point
 # end::helpersimport[]
@@ -43,3 +48,7 @@ def is_point_an_eye(board, point, color):
 # <4> Point is on the edge or corner.
 # <5> Point is in the middle.
 # end::eye[]
+
+###
+#END of Listing 3.15
+###
