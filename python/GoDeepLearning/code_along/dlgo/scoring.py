@@ -72,8 +72,10 @@ trivially dead groups.
 def evaluate_territory(board):
     status = {}
     
-    #Search through rows and columns. Later, I might add a vew
-    #from the board print out to visualize this more completely.
+    # Search through rows r and columns c. Later, I might add a vew
+    # from the board print out to visualize this more completely.
+    # get is defined in goboard_slow. get returns a player color if
+    # the space is occupied, none otherwise.
     for r in range(1, board.num_rows + 1):
         for c in range(1, board.num_cols + 1):
             p = Point(row=r, col=c)
@@ -125,30 +127,36 @@ def _collect_region(start_pos, board, visited=None):
     all_points = [start_pos]
     all_borders = set()
     
-    #
+    #.is_on_grid and .get are defined in goboard_slow.py
+    # is.on_grid returns true if the point is on the grid
     visited[start_pos] = True
     here = board.get(start_pos)
     deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
+    #These values are from the list above taken in turn, used to 
     for delta_r, delta_c in deltas:
+        
+        # Point is defined by gotypes above, returns the points in 
+        # the neighborhood from the delta points
         next_p = Point(row=start_pos.row + delta_r, col=start_pos.col + delta_c)
         if not board.is_on_grid(next_p):
             continue
+        
         neighbor = board.get(next_p)
         if neighbor == here:
             points, borders = _collect_region(next_p, board, visited)
+            
+            # Add points to counter and borders to set
             all_points += points
             all_borders |= borders
         else:
             all_borders.add(neighbor)
     return all_points, all_borders
-# end::scoring_collect_region[]
 
-
-# tag::scoring_compute_game_result[]
+#Finishes off the calcuation
 def compute_game_result(game_state):
     territory = evaluate_territory(game_state.board)
     return GameResult(
         territory.num_black_territory + territory.num_black_stones,
         territory.num_white_territory + territory.num_white_stones,
         komi=7.5)
-# end::scoring_compute_game_result[]
