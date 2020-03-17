@@ -110,16 +110,22 @@ Find the contiguous section of a board containing a point. Also
 identify all the boundary points.
 """
 
-
-# tag::scoring_collect_region[]
 def _collect_region(start_pos, board, visited=None):
 
+    #Sets the set at the start
     if visited is None:
         visited = {}
+    
+    #If the position is already counted, returns emptys
     if start_pos in visited:
         return [], set()
+    
+    #Collection begins after the tests, starting with the first
+    #Point. This function returns all_points and all_boarders
     all_points = [start_pos]
     all_borders = set()
+    
+    #
     visited[start_pos] = True
     here = board.get(start_pos)
     deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
