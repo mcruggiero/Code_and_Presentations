@@ -180,14 +180,11 @@ class Board():  # <1>
 #END of Listing 3.7
 ###
 
-
     def __eq__(self, other):
         return isinstance(other, Board) and \
             self.num_rows == other.num_rows and \
             self.num_cols == other.num_cols and \
             self._grid == other._grid
-
-
 
 ###
 #START OF LISTING 3.3
