@@ -16,31 +16,30 @@ public class Rocket : MonoBehaviour
         rigidbody = GetComponent<Rigidbody>();
         rocketSound = GetComponent<AudioSource>();
     }
-
     // Update is called once per frame
     void Update()
     {
         Trust();
         Rotate();
     }
-    
+
     void Trust()
     {
-    if(Input.GetKey(KeyCode.Space)) // Can thrust while rotating
-    {
-        rigidbody.AddRelativeForce(Vector3.up * mainThrust);
-        Audio();
-    }
-    else
-    {
-        rocketSound.Stop();
-    }
+        if(Input.GetKey(KeyCode.Space)) // Can thrust while rotating
+        {
+            rigidbody.AddRelativeForce(Vector3.up * mainThrust);
+            Audio();
+        }
+        else
+        {
+            rocketSound.Stop();
+        }
     }
 
     private void Rotate()
     {
         rigidbody.freezeRotation = true;
-        
+
         float rotationThisFrame = rcsThrust * Time.deltaTime;
 
         if(Input.GetKey(KeyCode.A))
@@ -51,17 +50,31 @@ public class Rocket : MonoBehaviour
         {
             transform.Rotate(-Vector3.forward  * rotationThisFrame);
         }
-        rigidbody.freezeRotation = false;
-
-
+        rigidbody.freezeRotation = false;      foreach (ContactPoint contact in collision.contacts)
+      {
+          Debug.DrawRay(contact.point, contact.normal, Color.white);
+      }
+      if (collision.relativeVelocity.magnitude > 2)
+          audioSource.Play();
     }
+
     void Audio()
     {
         if(!rocketSound.isPlaying)
         {
             rocketSound.Play();
         }
-
     }
 
+    void OnCollisionEnter(Collision collision)
+    {
+      foreach (ContactPoint contact in collision.contacts)
+      {
+          Debug.DrawRay(contact.point, contact.normal, Color.white);
+      }
+      if (collision.relativeVelocity.magnitude > 2)
+          audioSource.Play();
+    }
 }
+// x401-444-9291 Unit
+//
