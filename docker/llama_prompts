@@ -26,65 +26,65 @@ You are an expert in software testing and automation using Tosca. Your task is t
 
 ### **Example JSON Output Format:**
 ```json
-{
+{{
   "test_case": "{test_case_description}",
   "test_steps": [
-    {
+    {{
       "step_number": 1,
       "action": "Navigate to Master Records Module",
       "target_element": "Menu Navigation",
       "input_value_expected_result": "Click 'Master Records'"
-    },
-    {
+    }},
+    {{
       "step_number": 2,
       "action": "Select 'Create New Record'",
       "target_element": "Button",
       "input_value_expected_result": "Click 'New'"
-    },
-    {
+    }},
+    {{
       "step_number": 3,
       "action": "Enter L3 Record Details",
       "target_element": "Input Fields",
       "input_value_expected_result": "Populate mandatory fields"
-    },
-    {
+    }},
+    {{
       "step_number": 4,
       "action": "Enter L4 Record Details",
       "target_element": "Input Fields",
       "input_value_expected_result": "Populate mandatory fields"
-    },
-    {
+    }},
+    {{
       "step_number": 5,
       "action": "Validate Data Requirements",
       "target_element": "System Validation",
       "input_value_expected_result": "Ensure required fields are filled"
-    },
-    {
+    }},
+    {{
       "step_number": 6,
       "action": "Save the Record",
       "target_element": "Button",
       "input_value_expected_result": "Click 'Save'"
-    },
-    {
+    }},
+    {{
       "step_number": 7,
       "action": "Verify Record Creation Success",
       "target_element": "Confirmation Message",
       "input_value_expected_result": "'Record created successfully' displayed"
-    },
-    {
+    }},
+    {{
       "step_number": 8,
       "action": "Modify Existing Record",
       "target_element": "Search & Edit Fields",
       "input_value_expected_result": "Locate record, update data"
-    },
-    {
+    }},
+    {{
       "step_number": 9,
       "action": "Save Changes & Validate",
       "target_element": "System Validation",
       "input_value_expected_result": "Ensure changes are saved"
-    }
+    }}
   ]
-}
+}}
 ```
 ---
 ### **Now, generate the JSON output for the provided test case.**
