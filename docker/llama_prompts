@@ -1,14 +1,10 @@
-import json
-
 # Define the test case description
-test_case_description = "Create and Maintain Master Records Data Requirements (L3 and L4)"
+test_case_description = random_case
 
 # Define the structured prompt for LLaMA
-prompt = f"""
-You are an expert in software testing and automation using Tosca. Your task is to convert the following written test case into a **structured JSON output** containing step-by-step test execution details.
-
-### **Test Case Description:**
-"{test_case_description}"
+prompt = f"""<s>[INST] <<SYS>>
+You are an expert in software testing and automation using Tosca. Your task is to convert the following written test case into 
+a **structured JSON output** containing step-by-step test execution details.
 
 ### **Instructions:**
 1. Analyze the provided test case and break it down into sequential **test steps**.
@@ -19,16 +15,18 @@ You are an expert in software testing and automation using Tosca. Your task is t
    - `input_value_expected_result`: The data entered or the expected outcome.
 
 ### **STRICT OUTPUT REQUIREMENTS:**
-- **Your response MUST be in JSON format ONLY.** Do NOT include any explanations, headers, or additional text.
+- **Your response MUST be in JSON format ONLY.
+- ** Do NOT include any explanations, headers, or additional text.
 - **Ensure proper JSON syntax with an array of test steps.**
+- **ONLY output 
 - **Use clear and concise step descriptions.**
 - **Do NOT include code comments or extra text outside of the JSON object.**
-- **ONLY output a single valid JSON object—DO NOT repeat `json` tags or generate multiple JSON blocks.**
+- **ONLY output a single valid JSON object—DO NOT repeat ```json tags or generate multiple JSON blocks.**
 
 ### **Example JSON Output Format:**
 ```json
 {{
-  "test_case": "{test_case_description}",
+  "test_case": "Create and Maintain Master Records Data Requirements (L3 and L4)",
   "test_steps": [
     {{
       "step_number": 1,
@@ -87,16 +85,19 @@ You are an expert in software testing and automation using Tosca. Your task is t
   ]
 }}
 ```
----
-### **Now, generate the JSON output for the provided test case.**
+### **Now, generate the JSON output for this test case: {test_case_description}
+
+<</SYS>>
+JSON For text Case: [/INST]
 """
 
-# Example usage with LLaMA API (Assuming `llama.generate()` is a valid function call)
-response = llama.generate(prompt)
+qa_prompt = prompt
 
-# Print the JSON response
-try:
-    json_response = json.loads(response)  # Ensure valid JSON
-    print(json.dumps(json_response, indent=4))  # Pretty print JSON
-except json.JSONDecodeError:
-    print("Error: The model did not return valid JSON.")
+payload = {"model": "llama-3.3-70b-instruct", 
+    "prompt": qa_prompt, 
+    "stream": False,
+    "max_tokens": 4096*2,
+    "temperature": 0.1}
+
+# Make the POST request
+result = requests.post(url=url, headers=headers, json=payload)
