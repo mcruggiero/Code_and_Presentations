@@ -1,19 +1,101 @@
-prompt = """
-You are an AI expert in software testing and automation. Summarize the key elements of Tosca test automation in a structured format. Your response should be clear, concise, and well-organized for someone new to Tosca. Include the following:
+import json
 
-1. **Overview of Tosca**: Briefly explain what Tosca is and its purpose in software testing.
-2. **Model-Based Test Automation**: Describe how Tosca eliminates the need for scripting by using model-based automation.
-3. **Creating Test Workflows**: Explain how users scan applications with XScan, create Modules, and build test workflows.
-4. **Login Test Case Example**:
-   - Describe a typical login test case using Tosca.
-   - Show how test steps are structured (input fields, button clicks, verifications).
-5. **Parameterized Testing**: Explain how Tosca supports data-driven testing by allowing multiple test inputs.
-6. **Test Execution & Validation**: Describe how tests are executed and validated in Tosca.
-7. **Benefits of Tosca vs. Selenium**: Highlight the key advantages of Tosca over traditional script-based automation tools like Selenium.
+# Define the test case description
+test_case_description = "Create and Maintain Master Records Data Requirements (L3 and L4)"
 
-Format the response with bullet points and structured sections to ensure clarity.
+# Define the structured prompt for LLaMA
+prompt = f"""
+You are an expert in software testing and automation using Tosca. Your task is to convert the following written test case into a **structured JSON output** containing step-by-step test execution details.
+
+### **Test Case Description:**
+"{test_case_description}"
+
+### **Instructions:**
+1. Analyze the provided test case and break it down into sequential **test steps**.
+2. Each test step must include:
+   - `step_number`: The sequential number of the test step.
+   - `action`: The action performed (e.g., "Enter text", "Click button", "Validate field").
+   - `target_element`: The UI element or system component being interacted with.
+   - `input_value_expected_result`: The data entered or the expected outcome.
+
+### **STRICT OUTPUT REQUIREMENTS:**
+- **Your response MUST be in JSON format ONLY.** Do NOT include any explanations, headers, or additional text.
+- **Ensure proper JSON syntax with an array of test steps.**
+- **Use clear and concise step descriptions.**
+- **Do NOT include code comments or extra text outside of the JSON object.**
+
+### **Example JSON Output Format:**
+```json
+{
+  "test_case": "{test_case_description}",
+  "test_steps": [
+    {
+      "step_number": 1,
+      "action": "Navigate to Master Records Module",
+      "target_element": "Menu Navigation",
+      "input_value_expected_result": "Click 'Master Records'"
+    },
+    {
+      "step_number": 2,
+      "action": "Select 'Create New Record'",
+      "target_element": "Button",
+      "input_value_expected_result": "Click 'New'"
+    },
+    {
+      "step_number": 3,
+      "action": "Enter L3 Record Details",
+      "target_element": "Input Fields",
+      "input_value_expected_result": "Populate mandatory fields"
+    },
+    {
+      "step_number": 4,
+      "action": "Enter L4 Record Details",
+      "target_element": "Input Fields",
+      "input_value_expected_result": "Populate mandatory fields"
+    },
+    {
+      "step_number": 5,
+      "action": "Validate Data Requirements",
+      "target_element": "System Validation",
+      "input_value_expected_result": "Ensure required fields are filled"
+    },
+    {
+      "step_number": 6,
+      "action": "Save the Record",
+      "target_element": "Button",
+      "input_value_expected_result": "Click 'Save'"
+    },
+    {
+      "step_number": 7,
+      "action": "Verify Record Creation Success",
+      "target_element": "Confirmation Message",
+      "input_value_expected_result": "'Record created successfully' displayed"
+    },
+    {
+      "step_number": 8,
+      "action": "Modify Existing Record",
+      "target_element": "Search & Edit Fields",
+      "input_value_expected_result": "Locate record, update data"
+    },
+    {
+      "step_number": 9,
+      "action": "Save Changes & Validate",
+      "target_element": "System Validation",
+      "input_value_expected_result": "Ensure changes are saved"
+    }
+  ]
+}
+```
+---
+### **Now, generate the JSON output for the provided test case.**
 """
 
-# Example usage with LLaMA API
+# Example usage with LLaMA API (Assuming `llama.generate()` is a valid function call)
 response = llama.generate(prompt)
-print(response)
+
+# Print the JSON response
+try:
+    json_response = json.loads(response)  # Ensure valid JSON
+    print(json.dumps(json_response, indent=4))  # Pretty print JSON
+except json.JSONDecodeError:
+    print("Error: The model did not return valid JSON.")
