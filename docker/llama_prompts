@@ -1,0 +1,19 @@
+prompt = """
+You are an AI expert in software testing and automation. Summarize the key elements of Tosca test automation in a structured format. Your response should be clear, concise, and well-organized for someone new to Tosca. Include the following:
+
+1. **Overview of Tosca**: Briefly explain what Tosca is and its purpose in software testing.
+2. **Model-Based Test Automation**: Describe how Tosca eliminates the need for scripting by using model-based automation.
+3. **Creating Test Workflows**: Explain how users scan applications with XScan, create Modules, and build test workflows.
+4. **Login Test Case Example**:
+   - Describe a typical login test case using Tosca.
+   - Show how test steps are structured (input fields, button clicks, verifications).
+5. **Parameterized Testing**: Explain how Tosca supports data-driven testing by allowing multiple test inputs.
+6. **Test Execution & Validation**: Describe how tests are executed and validated in Tosca.
+7. **Benefits of Tosca vs. Selenium**: Highlight the key advantages of Tosca over traditional script-based automation tools like Selenium.
+
+Format the response with bullet points and structured sections to ensure clarity.
+"""
+
+# Example usage with LLaMA API
+response = llama.generate(prompt)
+print(response)
