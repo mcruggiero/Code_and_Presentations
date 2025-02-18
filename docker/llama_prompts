@@ -14,14 +14,14 @@ a **structured JSON output** containing step-by-step test execution details.
    - `target_element`: The UI element or system component being interacted with.
    - `input_value_expected_result`: The data entered or the expected outcome.
 
-### **STRICT OUTPUT REQUIREMENTS:**
-- **Your response MUST be in JSON format ONLY.
-- ** Do NOT include any explanations, headers, or additional text.
-- **Ensure proper JSON syntax with an array of test steps.**
-- **ONLY output 
-- **Use clear and concise step descriptions.**
-- **Do NOT include code comments or extra text outside of the JSON object.**
-- **ONLY output a single valid JSON object—DO NOT repeat ```json tags or generate multiple JSON blocks.**
+### **Output Rules:**
+- **MUST return a single valid JSON object.**
+- **NO explanations, headers, or repeated JSON tags.**
+- **Each test step must include:**
+  - `step_number`: Sequential step number.
+  - `action`: The performed action (e.g., "Enter text", "Click button").
+  - `target_element`: The UI element or component.
+  - `input_value_expected_result`: The expected result or input.
 
 ### **Example JSON Output Format:**
 ```json
