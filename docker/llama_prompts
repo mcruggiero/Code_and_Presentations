@@ -23,6 +23,7 @@ You are an expert in software testing and automation using Tosca. Your task is t
 - **Ensure proper JSON syntax with an array of test steps.**
 - **Use clear and concise step descriptions.**
 - **Do NOT include code comments or extra text outside of the JSON object.**
+- **ONLY output a single valid JSON object—DO NOT repeat `json` tags or generate multiple JSON blocks.**
 
 ### **Example JSON Output Format:**
 ```json
