@@ -1,0 +1,10 @@
+class Excelsior:
+    """The main class...I will be populating all of this help stuff soon."""
+    def __init__(self):
+        self.main()
+
+    def main(self):
+        self.hello_world()
+
+    def hello_world(self):
+        print("Hello World")
