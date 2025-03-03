@@ -95,3 +95,25 @@ if __name__ == "__main__":
     create_index_and_insert_data(os_client)  # Create index & insert data
     search_data(os_client)  # Search for data
     stop_opensearch(os_process)  # Stop OpenSearch
+
+
+def must_contain_multi_match(client, index_name, search_term):
+    """Search multiple columns where the term MUST be present in at least one."""
+    query = {
+        "query": {
+            "bool": {
+                "must": [  # Ensures the term MUST appear in at least one field
+                    {
+                        "multi_match": {
+                            "query": search_term,
+                            "fields": ["scenario_name", "scenario_description", "variant", "string_list"],
+                            "type": "best_fields"  # Uses BM25 ranking
+                        }
+                    }
+                ]
+            }
+        }
+    }
+
+    response = client.search(index=index_name, body=query)
+    return response["hits"]["hits"]
