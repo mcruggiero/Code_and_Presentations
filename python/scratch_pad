@@ -1,10 +1,26 @@
-class Excelsior:
-    """The main class...I will be populating all of this help stuff soon."""
-    def __init__(self):
-        self.main()
+from opensearchpy import OpenSearch
 
-    def main(self):
-        self.hello_world()
+# Step 1: Connect to OpenSearch (Local or Remote)
+client = OpenSearch(
+    hosts=[{"host": "localhost", "port": 9200}],  # Change to remote host if needed
+    http_compress=True
+)
 
-    def hello_world(self):
-        print("Hello World")
+# Step 2: Define Index Name
+index_name = "my_index"
+
+# Step 3: Check if Index Exists, Create if Not
+if not client.indices.exists(index=index_name):
+    client.indices.create(index=index_name)
+
+# Step 4: Define the Dictionary (Document)
+doc = {
+    "id": 1,
+    "title": "OpenSearch Example",
+    "content": "This is an example document.",
+    "timestamp": "2025-03-03T12:00:00"
+}
+
+# Step 5: Insert the Dictionary into OpenSearch
+response = client.index(index=index_name, body=doc)
+print(response)
