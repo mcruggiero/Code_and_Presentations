@@ -1,190 +1,24 @@
-open_search_client = OpenSearch(
-    hosts = [{"host": "localhost", "port":9200}],
-    http_compress=True)
+from opensearchpy.test import OpenSearchTestCase
+from opensearchpy import OpenSearch
 
+# Create a test instance
+class OpenSearchInMemory(OpenSearchTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = self._get_client()
+
+# Instantiate In-Memory OpenSearch
+test_opensearch = OpenSearchInMemory()
+client = test_opensearch.client
+
+# Create an index
 index_name = "test_index"
+client.indices.create(index=index_name, ignore=400)
 
-# Step 3: Check if Index Exists, Create if Not
-if not open_search_client.indices.exists(index=index_name):
-    open_search_client.indices.create(index=index_name)
+# Insert a document
+doc = {"title": "In-Memory Test", "content": "Testing OpenSearch in Jupyter"}
+client.index(index=index_name, body=doc)
 
-# Step 4: Define the Dictionary (Document)
-doc = {
-    "id": 1,
-    "title": "OpenSearch Example",
-    "content": "This is an example document.",
-    "timestamp": "2025-03-03T12:00:00"
-}
-
-print(open_search_client.info())
-
-===
-
----------------------------------------------------------------------------
-ConnectionRefusedError                    Traceback (most recent call last)
-File ~/.local/lib/python3.9/site-packages/urllib3/connection.py:174, in HTTPConnection._new_conn(self)
-    173 try:
---> 174     conn = connection.create_connection(
-    175         (self._dns_host, self.port), self.timeout, **extra_kw
-    176     )
-    178 except SocketTimeout:
-
-File ~/.local/lib/python3.9/site-packages/urllib3/util/connection.py:95, in create_connection(address, timeout, source_address, socket_options)
-     94 if err is not None:
----> 95     raise err
-     97 raise socket.error("getaddrinfo returns an empty list")
-
-File ~/.local/lib/python3.9/site-packages/urllib3/util/connection.py:85, in create_connection(address, timeout, source_address, socket_options)
-     84     sock.bind(source_address)
----> 85 sock.connect(sa)
-     86 return sock
-
-ConnectionRefusedError: [Errno 111] Connection refused
-
-During handling of the above exception, another exception occurred:
-
-NewConnectionError                        Traceback (most recent call last)
-File ~/.local/lib/python3.9/site-packages/opensearchpy/connection/http_urllib3.py:280, in Urllib3HttpConnection.perform_request(self, method, url, params, body, timeout, ignore, headers)
-    278 self.metrics.request_start()
---> 280 response = self.pool.urlopen(
-    281     method, url, body, retries=Retry(False), headers=request_headers, **kw
-    282 )
-    283 duration = time.time() - start
-
-File ~/.local/lib/python3.9/site-packages/urllib3/connectionpool.py:802, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, **response_kw)
-    800     e = ProtocolError("Connection aborted.", e)
---> 802 retries = retries.increment(
-    803     method, url, error=e, _pool=self, _stacktrace=sys.exc_info()[2]
-    804 )
-    805 retries.sleep()
-
-File ~/.local/lib/python3.9/site-packages/urllib3/util/retry.py:527, in Retry.increment(self, method, url, response, error, _pool, _stacktrace)
-    525 if self.total is False and error:
-    526     # Disabled, indicate to re-raise the error.
---> 527     raise six.reraise(type(error), error, _stacktrace)
-    529 total = self.total
-
-File ~/.local/lib/python3.9/site-packages/urllib3/packages/six.py:770, in reraise(tp, value, tb)
-    769         raise value.with_traceback(tb)
---> 770     raise value
-    771 finally:
-
-File ~/.local/lib/python3.9/site-packages/urllib3/connectionpool.py:716, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, **response_kw)
-    715 # Make the request on the httplib connection object.
---> 716 httplib_response = self._make_request(
-    717     conn,
-    718     method,
-    719     url,
-    720     timeout=timeout_obj,
-    721     body=body,
-    722     headers=headers,
-    723     chunked=chunked,
-    724 )
-    726 # If we're going to release the connection in ``finally:``, then
-    727 # the response doesn't need to know about the connection. Otherwise
-    728 # it will also try to release it and we'll have a double-release
-    729 # mess.
-
-File ~/.local/lib/python3.9/site-packages/urllib3/connectionpool.py:416, in HTTPConnectionPool._make_request(self, conn, method, url, timeout, chunked, **httplib_request_kw)
-    415     else:
---> 416         conn.request(method, url, **httplib_request_kw)
-    418 # We are swallowing BrokenPipeError (errno.EPIPE) since the server is
-    419 # legitimately able to close the connection after sending a valid response.
-    420 # With this behaviour, the received response is still readable.
-
-File ~/.local/lib/python3.9/site-packages/urllib3/connection.py:244, in HTTPConnection.request(self, method, url, body, headers)
-    243     headers["User-Agent"] = _get_default_user_agent()
---> 244 super(HTTPConnection, self).request(method, url, body=body, headers=headers)
-
-File /usr/local/lib/python3.9/http/client.py:1285, in HTTPConnection.request(self, method, url, body, headers, encode_chunked)
-   1284 """Send a complete request to the server."""
--> 1285 self._send_request(method, url, body, headers, encode_chunked)
-
-File /usr/local/lib/python3.9/http/client.py:1331, in HTTPConnection._send_request(self, method, url, body, headers, encode_chunked)
-   1330     body = _encode(body, 'body')
--> 1331 self.endheaders(body, encode_chunked=encode_chunked)
-
-File /usr/local/lib/python3.9/http/client.py:1280, in HTTPConnection.endheaders(self, message_body, encode_chunked)
-   1279     raise CannotSendHeader()
--> 1280 self._send_output(message_body, encode_chunked=encode_chunked)
-
-File /usr/local/lib/python3.9/http/client.py:1040, in HTTPConnection._send_output(self, message_body, encode_chunked)
-   1039 del self._buffer[:]
--> 1040 self.send(msg)
-   1042 if message_body is not None:
-   1043 
-   1044     # create a consistent interface to message_body
-
-File /usr/local/lib/python3.9/http/client.py:980, in HTTPConnection.send(self, data)
-    979 if self.auto_open:
---> 980     self.connect()
-    981 else:
-
-File ~/.local/lib/python3.9/site-packages/urllib3/connection.py:205, in HTTPConnection.connect(self)
-    204 def connect(self):
---> 205     conn = self._new_conn()
-    206     self._prepare_conn(conn)
-
-File ~/.local/lib/python3.9/site-packages/urllib3/connection.py:186, in HTTPConnection._new_conn(self)
-    185 except SocketError as e:
---> 186     raise NewConnectionError(
-    187         self, "Failed to establish a new connection: %s" % e
-    188     )
-    190 return conn
-
-NewConnectionError: <urllib3.connection.HTTPConnection object at 0x7f7ef04d76d0>: Failed to establish a new connection: [Errno 111] Connection refused
-
-During handling of the above exception, another exception occurred:
-
-ConnectionError                           Traceback (most recent call last)
-Cell In[77], line 8
-      5 index_name = "test_index"
-      7 # Step 3: Check if Index Exists, Create if Not
-----> 8 if not open_search_client.indices.exists(index=index_name):
-      9     open_search_client.indices.create(index=index_name)
-     11 # Step 4: Define the Dictionary (Document)
-
-File ~/.local/lib/python3.9/site-packages/opensearchpy/client/utils.py:176, in query_params.<locals>._wrapper.<locals>._wrapped(*args, **kwargs)
-    173         if v is not None:
-    174             params[p] = _escape(v)
---> 176 return func(*args, params=params, headers=headers, **kwargs)
-
-File ~/.local/lib/python3.9/site-packages/opensearchpy/client/indices.py:671, in IndicesClient.exists(self, index, params, headers)
-    668 if index in SKIP_IN_PATH:
-    669     raise ValueError("Empty value passed for a required argument 'index'.")
---> 671 return self.transport.perform_request(
-    672     "HEAD", _make_path(index), params=params, headers=headers
-    673 )
-
-File ~/.local/lib/python3.9/site-packages/opensearchpy/transport.py:455, in Transport.perform_request(self, method, url, params, body, timeout, ignore, headers)
-    453     # raise exception on last retry
-    454     if attempt == self.max_retries:
---> 455         raise e
-    456 else:
-    457     raise e
-
-File ~/.local/lib/python3.9/site-packages/opensearchpy/transport.py:418, in Transport.perform_request(self, method, url, params, body, timeout, ignore, headers)
-    415 connection = self.get_connection()
-    417 try:
---> 418     status, headers_response, data = connection.perform_request(
-    419         method,
-    420         url,
-    421         params,
-    422         body,
-    423         headers=headers,
-    424         ignore=ignore,
-    425         timeout=timeout,
-    426     )
-    428     # Lowercase all the header names for consistency in accessing them.
-    429     headers_response = {
-    430         header.lower(): value for header, value in headers_response.items()
-    431     }
-
-File ~/.local/lib/python3.9/site-packages/opensearchpy/connection/http_urllib3.py:295, in Urllib3HttpConnection.perform_request(self, method, url, params, body, timeout, ignore, headers)
-    293     if isinstance(e, ReadTimeoutError):
-    294         raise ConnectionTimeout("TIMEOUT", str(e), e)
---> 295     raise ConnectionError("N/A", str(e), e)
-    296 finally:
-    297     self.metrics.request_end()
-
-ConnectionError: ConnectionError(<urllib3.connection.HTTPConnection object at 0x7f7ef04d76d0>: Failed to establish a new connection: [Errno 111] Connection refused) caused by: NewConnectionError(<urllib3.connection.HTTPConnection object at 0x7f7ef04d76d0>: Failed to establish a new connection: [Errno 111] Connection refused)
+# Search
+response = client.search(index=index_name, body={"query": {"match_all": {}}})
+print(response)
