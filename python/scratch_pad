@@ -1,55 +1,97 @@
+import os
 import subprocess
 import time
 from opensearchpy import OpenSearch
 
-# Step 1: Download OpenSearch (if needed)
+# ================================
+# 🚀 STEP 1: DOWNLOAD OPENSEARCH (Only if Needed)
+# ================================
 def download_opensearch():
-    import os
-    if not os.path.exists("opensearch-2.11.0"):
-        print("Downloading OpenSearch...")
-        subprocess.run([
-            "wget", "https://artifacts.opensearch.org/releases/bundle/opensearch/2.11.0/opensearch-2.11.0-linux-x64.tar.gz"
-        ])
-        subprocess.run(["tar", "-xzf", "opensearch-2.11.0-linux-x64.tar.gz"])
+    lib_path = "lib/opensearch-2.11.0"
+    tar_file = "lib/opensearch-2.11.0-linux-x64.tar.gz"
 
-# Step 2: Start OpenSearch in a subprocess
+    if not os.path.exists(lib_path):
+        print("📥 Downloading OpenSearch...")
+        os.makedirs("lib", exist_ok=True)  # Ensure the lib directory exists
+
+        # Download OpenSearch to lib/
+        subprocess.run([
+            "wget", "-O", tar_file, 
+            "https://artifacts.opensearch.org/releases/bundle/opensearch/2.11.0/opensearch-2.11.0-linux-x64.tar.gz"
+        ], check=True)
+
+        # Extract it into lib/
+        subprocess.run(["tar", "-xzf", tar_file, "-C", "lib"], check=True)
+    
+    return lib_path
+
+# ================================
+# 🚀 STEP 2: START OPENSEARCH
+# ================================
 def start_opensearch():
-    print("Starting OpenSearch...")
+    opensearch_path = download_opensearch()
+    print("🚀 Starting OpenSearch...")
+
     process = subprocess.Popen([
-        "./opensearch-2.11.0/bin/opensearch",
+        f"{opensearch_path}/bin/opensearch",
         "-E", "discovery.type=single-node",
         "-E", "plugins.security.disabled=true"
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    time.sleep(10)  # Wait for OpenSearch to start
+
+    time.sleep(10)  # Wait for OpenSearch to fully start
     return process
 
-# Step 3: Connect to OpenSearch
+# ================================
+# 🚀 STEP 3: CONNECT TO OPENSEARCH
+# ================================
 def connect_opensearch():
     client = OpenSearch(
         hosts=[{"host": "localhost", "port": 9200}],
         http_compress=True
     )
-    print(client.info())  # Print OpenSearch info to verify connection
+    print("✅ Connected to OpenSearch")
+    print(client.info())  # Display OpenSearch info
     return client
 
-# Run Everything
-download_opensearch()
-opensearch_process = start_opensearch()
-client = connect_opensearch()
+# ================================
+# 🚀 STEP 4: CREATE INDEX & INSERT DATA
+# ================================
+def create_index_and_insert_data(client):
+    index_name = "test_index"
 
-# Step 4: Insert Data
-index_name = "test_index"
-if not client.indices.exists(index=index_name):
-    client.indices.create(index=index_name)
+    # Check if index exists, create if not
+    if not client.indices.exists(index=index_name):
+        client.indices.create(index=index_name)
+        print(f"✅ Index '{index_name}' created.")
 
-doc = {"title": "Pure Python OpenSearch", "content": "Running OpenSearch without Docker!"}
-client.index(index=index_name, body=doc)
+    # Insert a test document
+    doc = {"title": "Pure Python OpenSearch", "content": "Running OpenSearch without Docker!"}
+    client.index(index=index_name, body=doc)
+    print("📄 Document inserted.")
 
-# Step 5: Search Data
-query = {"query": {"match_all": {}}}
-response = client.search(index=index_name, body=query)
-print(response)
+# ================================
+# 🚀 STEP 5: SEARCH FOR DATA
+# ================================
+def search_data(client):
+    index_name = "test_index"
+    query = {"query": {"match_all": {}}}
+    
+    response = client.search(index=index_name, body=query)
+    print("🔍 Search Results:", response["hits"]["hits"])
 
-# Step 6: Stop OpenSearch When Done
-opensearch_process.terminate()
-print("OpenSearch stopped.")
+# ================================
+# 🚀 STEP 6: STOP OPENSEARCH
+# ================================
+def stop_opensearch(process):
+    process.terminate()
+    print("🛑 OpenSearch stopped.")
+
+# ================================
+# 🚀 RUN EVERYTHING
+# ================================
+if __name__ == "__main__":
+    os_process = start_opensearch()  # Start OpenSearch
+    os_client = connect_opensearch()  # Connect to OpenSearch
+    create_index_and_insert_data(os_client)  # Create index & insert data
+    search_data(os_client)  # Search for data
+    stop_opensearch(os_process)  # Stop OpenSearch
