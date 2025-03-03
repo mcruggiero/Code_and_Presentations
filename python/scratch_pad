@@ -1,24 +1,55 @@
-from opensearchpy.test import OpenSearchTestCase
+import subprocess
+import time
 from opensearchpy import OpenSearch
 
-# Create a test instance
-class OpenSearchInMemory(OpenSearchTestCase):
-    def setUp(self):
-        super().setUp()
-        self.client = self._get_client()
+# Step 1: Download OpenSearch (if needed)
+def download_opensearch():
+    import os
+    if not os.path.exists("opensearch-2.11.0"):
+        print("Downloading OpenSearch...")
+        subprocess.run([
+            "wget", "https://artifacts.opensearch.org/releases/bundle/opensearch/2.11.0/opensearch-2.11.0-linux-x64.tar.gz"
+        ])
+        subprocess.run(["tar", "-xzf", "opensearch-2.11.0-linux-x64.tar.gz"])
 
-# Instantiate In-Memory OpenSearch
-test_opensearch = OpenSearchInMemory()
-client = test_opensearch.client
+# Step 2: Start OpenSearch in a subprocess
+def start_opensearch():
+    print("Starting OpenSearch...")
+    process = subprocess.Popen([
+        "./opensearch-2.11.0/bin/opensearch",
+        "-E", "discovery.type=single-node",
+        "-E", "plugins.security.disabled=true"
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    time.sleep(10)  # Wait for OpenSearch to start
+    return process
 
-# Create an index
+# Step 3: Connect to OpenSearch
+def connect_opensearch():
+    client = OpenSearch(
+        hosts=[{"host": "localhost", "port": 9200}],
+        http_compress=True
+    )
+    print(client.info())  # Print OpenSearch info to verify connection
+    return client
+
+# Run Everything
+download_opensearch()
+opensearch_process = start_opensearch()
+client = connect_opensearch()
+
+# Step 4: Insert Data
 index_name = "test_index"
-client.indices.create(index=index_name, ignore=400)
+if not client.indices.exists(index=index_name):
+    client.indices.create(index=index_name)
 
-# Insert a document
-doc = {"title": "In-Memory Test", "content": "Testing OpenSearch in Jupyter"}
+doc = {"title": "Pure Python OpenSearch", "content": "Running OpenSearch without Docker!"}
 client.index(index=index_name, body=doc)
 
-# Search
-response = client.search(index=index_name, body={"query": {"match_all": {}}})
+# Step 5: Search Data
+query = {"query": {"match_all": {}}}
+response = client.search(index=index_name, body=query)
 print(response)
+
+# Step 6: Stop OpenSearch When Done
+opensearch_process.terminate()
+print("OpenSearch stopped.")
