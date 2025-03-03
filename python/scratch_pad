@@ -7,21 +7,21 @@ from opensearchpy import OpenSearch
 # 🚀 STEP 1: DOWNLOAD OPENSEARCH (Only if Needed)
 # ================================
 def download_opensearch():
-    lib_path = "lib/opensearch-2.11.0"
-    tar_file = "lib/opensearch-2.11.0-linux-x64.tar.gz"
+    lib_path = "../lib/opensearch-2.11.0"  # Move OpenSearch one directory up
+    tar_file = "../lib/opensearch-2.11.0-linux-x64.tar.gz"
 
     if not os.path.exists(lib_path):
         print("📥 Downloading OpenSearch...")
-        os.makedirs("lib", exist_ok=True)  # Ensure the lib directory exists
+        os.makedirs("../lib", exist_ok=True)  # Ensure the lib directory exists
 
-        # Download OpenSearch to lib/
+        # Download OpenSearch to ../lib/
         subprocess.run([
             "wget", "-O", tar_file, 
             "https://artifacts.opensearch.org/releases/bundle/opensearch/2.11.0/opensearch-2.11.0-linux-x64.tar.gz"
         ], check=True)
 
-        # Extract it into lib/
-        subprocess.run(["tar", "-xzf", tar_file, "-C", "lib"], check=True)
+        # Extract it into ../lib/
+        subprocess.run(["tar", "-xzf", tar_file, "-C", "../lib"], check=True)
     
     return lib_path
 
