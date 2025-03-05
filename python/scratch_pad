@@ -117,3 +117,47 @@ def must_contain_multi_match(client, index_name, search_term):
 
     response = client.search(index=index_name, body=query)
     return response["hits"]["hits"]
+
+
+
+import os
+import subprocess
+import time
+from elasticsearch import Elasticsearch
+
+# Define paths
+ES_VERSION = "8.6.0"
+ES_DOWNLOAD_URL = f"https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{ES_VERSION}-linux-x86_64.tar.gz"
+ES_DIR = f"elasticsearch-{ES_VERSION}"
+ES_TAR = f"{ES_DIR}.tar.gz"
+
+# Check if Elasticsearch is already downloaded
+if not os.path.exists(ES_TAR):
+    print("Downloading Elasticsearch...")
+    subprocess.run(["wget", ES_DOWNLOAD_URL])
+
+# Check if already extracted
+if not os.path.exists(ES_DIR):
+    print("Extracting Elasticsearch...")
+    subprocess.run(["tar", "-xzf", ES_TAR])
+
+# Define the command to run Elasticsearch in the background
+es_command = [f"./{ES_DIR}/bin/elasticsearch"]
+
+# Run Elasticsearch as a subprocess
+print("Starting Elasticsearch...")
+es_process = subprocess.Popen(es_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+# Wait for Elasticsearch to start
+time.sleep(15)  # Adjust based on system speed
+
+# Connect to Elasticsearch
+es = Elasticsearch("http://localhost:9200")
+
+if es.ping():
+    print("Elasticsearch is running!")
+else:
+    print("Failed to connect to Elasticsearch.")
+
+# To stop Elasticsearch when done:
+# es_process.terminate()  # Or `es_process.kill()`
