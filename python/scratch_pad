@@ -23,7 +23,12 @@ ex.main()
 st.title("Excelsior Test App!")
 
 # Sidebar for radio buttons
-st.sidebar.markdown("<h3> stype='width:180px'; text-align:center;'>Options</h3>",unsafe_allow_html=True)
+
+st.sidebar.markdown(
+    "<h3 style='width:180px; text-align:center;'>Options</h3>", 
+    unsafe_allow_html=True
+)
+
 st.sidebar.header("Options")
 radio_choice = st.sidebar.radio("Select an option:", ["Show Graph", "Show Data"])
 
