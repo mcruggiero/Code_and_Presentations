@@ -1,42 +1,175 @@
 import streamlit as st
 import pandas as pd
-import os
+import matplotlib.pyplot as plt
+import numpy as np
+import io
 import sys
-import importlib
+import os
 import json
 
-# Load Excelsior Module
+import importlib
+
 project_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(os.path.join(project_root, "src"))
 
 import excelsior_es
 importlib.reload(excelsior_es)
+
 from excelsior_es import Excelsior
 
-# Initialize Excelsior
 ex = Excelsior()
 ex.main()
 
 # Title of the app
 st.title("Welcome to the Excelsior Test App!")
+
+# Sidebar for radio buttons
+
+# st.markdown(
+#     """
+#     <style>
+#         section[data-testid="stSidebar"] {
+#             width: 100px !important; # Set the width to your desired value
+#         }
+#     </style>
+#     """,
+#     unsafe_allow_html=True,
+# )
+
+# #st.sidebar.header("Options")
+# radio_choice = st.sidebar.radio("Index Search:", ["Test Portfolio", "String Tests"])
+# print(radio_choice)
+
+# Show Data or Graph based on radio button selection
+# if radio_choice == "Test Portfolio":
+
 st.subheader("Test Portfolio")
+df = ex.portfolio
+df.string_test_list = df.string_test_list.apply(lambda x: "\n".join([str(a) for a in x])) 
+st.write(df.astype(str))
 
 # Search box
-search_term = st.text_input("Enter a search term:")
+portfolio_search = st.text_input(f"Search for a term in the Test Portfolio")
 
-if search_term:
+if portfolio_search:
     # Execute search
-    results = ex.general_portfolio_search(search_term, search_index=ex.portfolio_index_name)
-    results = [x["_source"] for x in results]  # Extract only the "_source" field
+    results = ex.general_portfolio_search(portfolio_search, 
+                                          search_index=ex.portfolio_index_name)
+    results = [x["_source"] for x in results]  
 
     if results:
         # Display in collapsible JSON format
         st.subheader("Search Results (Formatted View)")
         st.json(results)
 
-        # Display in a scrollable raw JSON box
-        formatted_json = json.dumps(results, indent=4)
-        st.subheader("Raw JSON Output")
-        st.text_area("Raw JSON:", formatted_json, height=300)
+        # No time to show this, but want to keep it just in case
+        # # Display in a scrollable raw JSON box
+        # formatted_json = json.dumps(results, indent=4)
+        # st.subheader("Raw JSON Output")
+        # st.text_area("Raw JSON:", formatted_json, height=300)
     else:
         st.write("No matching results found.")
+
+string_search = st.text_input(f"Search for a term in the sheets of test strings")
+
+if string_search:
+    # Execute search
+    results = ex.general_portfolio_search(string_search, 
+                                          search_index=ex.main_index_name)
+    results = [x["_source"] for x in results]  
+
+    if results:
+        # Display in collapsible JSON format
+        st.subheader("Search Results (Formatted View)")
+        st.json(results)
+
+generate_button = st.button(label="Generate Sheets Containning Results")
+
+if generate_button and string_search:
+    download_information = ex.search_and_return_sheets(string_search)
+    download_path = download_information["file_name"]
+
+    # I hate these double ifs....I should make a function, but I'm too tired.
+    if download_path and os.path.exists(download_path):
+    
+        st.success("Zip File Created!")
+    
+        with open(download_path, "rb") as f:
+            zip_data = f.read()
+
+        zip_file_name = download_path.split("/")[-1]
+
+        download_button = st.download_button(label=f"Download {zip_file_name}",
+                                             data=zip_data,
+                                             file_name = zip_file_name,
+                                             mime="application/zip")
+
+        if download_button:
+
+            os.remove(download_path)
+            generate_button = st.button(label="Generate Sheets Containning Results")
+            print("Deleted Zip")
+
+
+
+        
+
+    
+        
+
+        
+
+
+
+
+
+# 
+
+# results = ex.general_portfolio_search(portfolio_search, search_index=ex.portfolio_index_name)
+# results = [x['_source'] for x in results]
+
+# [{'test_id': 'INT_PTP_002E',
+#   'scenario_name': 'Direct Procurement - MRP Through Invoicing with Quality (Rejection) during In-bound process',
+#   'scenario_description': 'Standard MRP Direct Procumren Scenario though Invoicing that includes PO folder with In-bound Quality (Rejection) process',
+#   'variant': '',
+#   'string_test_list': ['STR L3 Planning Execution (Prod Ops)',
+#    'STR L3 Purchase Requisition Management (MRP/Non-MRP) & Approval (Supply Chain)',
+#    'STR L3 Purchase Order Generation, Approval And Release Strategy (Supply Chain)',
+#    'STR L3 Supplier PO Communication, Acknowledgement & Schedule Management (Supply Chain)',
+#    'STR L3 Receiving Inspection and Defect Documentation (MES) (Prod Ops)',
+#    'STR L3 Indirect Tax Determination Engine (Finance)',
+#    'STR L3 Warehouse Inbound Processing (Prod Ops)',
+#    'STR L3 Execute & Analyze Pegging (Finance)',
+#    'STR L3 Perform Quality Inspection (MES)',
+#    'STR L3 Receiving Inspection and Defect Documentation (MES) (Prod Ops)',
+#    'STR L3 Return & Repair Purchase Order Processing (Supply Chain)',
+#    'STR L3 Review Financial Postings (Finance)']}]
+
+
+# elif radio_choice == "Show Graph":
+#     st.subheader("Matplotlib Graph")
+#     fig, ax = plt.subplots()
+#     x = np.linspace(0, 10, 100)
+#     y = np.sin(x)
+#     ax.plot(x, y, label="Sine Wave")
+#     ax.set_xlabel("X-axis")
+#     ax.set_ylabel("Y-axis")
+#     ax.legend()
+#     st.pyplot(fig)
+
+# # Button to download DataFrame as CSV
+# def convert_df_to_csv(df):
+#     output = io.StringIO()
+#     df.to_csv(output, index=False)
+#     return output.getvalue()
+
+# csv_data = convert_df_to_csv(df)
+# st.download_button(
+#     label="Download Data as CSV",
+#     data=csv_data,
+#     file_name="data.csv",
+#     mime="text/csv"
+# )
+
+es_info = ex.opensearch_client.info()
+st.text_area(f'Elastic Search Info: {es_info["cluster_name"]}', height=100)
