@@ -20,62 +20,35 @@ ex = Excelsior()
 ex.main()
 
 # Title of the app
-st.title("Excelsior Test App!")
+st.title("Welcome to the Excelsior Test App!")
+st.subheader("Test Portfolio")
 
-# Sidebar for radio buttons
-
-st.sidebar.markdown(
-    "<h3 style='width:180px; text-align:center;'>Options</h3>", 
-    unsafe_allow_html=True
-)
-
-st.sidebar.header("Options")
-radio_choice = st.sidebar.radio("Select an option:", ["Show Graph", "Show Data"])
-
-# Sample DataFrame
-df = pd.DataFrame({
-    "Name": ["Alice", "Bob", "Charlie", "David", "Eva"],
-    "Age": [25, 30, 35, 40, 45],
-    "Score": [90, 85, 80, 95, 88]
-})
+df = ex.portfolio
+df.string_test_list = df.string_test_list.apply(lambda x: "\n".join([str(a) for a in x])) 
+st.write(df.astype(str))
 
 # Search box
-search_term = st.text_input("Search for a name:", "")
+search_term = st.text_input(f"Search for a term in the Test Portfolio")
+results = ex.general_portfolio_search(search_term, search_index=ex.portfolio_index_name)
+results = [x['_source'] for x in results]
 
-# Filter DataFrame based on search
-if search_term:
-    filtered_df = df[df["Name"].str.contains(search_term, case=False, na=False)]
-else:
-    filtered_df = df
+# [{'test_id': 'INT_PTP_002E',
+#   'scenario_name': 'Direct Procurement - MRP Through Invoicing with Quality (Rejection) during In-bound process',
+#   'scenario_description': 'Standard MRP Direct Procumren Scenario though Invoicing that includes PO folder with In-bound Quality (Rejection) process',
+#   'variant': '',
+#   'string_test_list': ['STR L3 Planning Execution (Prod Ops)',
+#    'STR L3 Purchase Requisition Management (MRP/Non-MRP) & Approval (Supply Chain)',
+#    'STR L3 Purchase Order Generation, Approval And Release Strategy (Supply Chain)',
+#    'STR L3 Supplier PO Communication, Acknowledgement & Schedule Management (Supply Chain)',
+#    'STR L3 Receiving Inspection and Defect Documentation (MES) (Prod Ops)',
+#    'STR L3 Indirect Tax Determination Engine (Finance)',
+#    'STR L3 Warehouse Inbound Processing (Prod Ops)',
+#    'STR L3 Execute & Analyze Pegging (Finance)',
+#    'STR L3 Perform Quality Inspection (MES)',
+#    'STR L3 Receiving Inspection and Defect Documentation (MES) (Prod Ops)',
+#    'STR L3 Return & Repair Purchase Order Processing (Supply Chain)',
+#    'STR L3 Review Financial Postings (Finance)']}]
 
-# Show Data or Graph based on radio button selection
-if radio_choice == "Show Data":
-    st.subheader("Data Table")
-    st.write(filtered_df)
-elif radio_choice == "Show Graph":
-    st.subheader("Matplotlib Graph")
-    fig, ax = plt.subplots()
-    x = np.linspace(0, 10, 100)
-    y = np.sin(x)
-    ax.plot(x, y, label="Sine Wave")
-    ax.set_xlabel("X-axis")
-    ax.set_ylabel("Y-axis")
-    ax.legend()
-    st.pyplot(fig)
-
-# Button to download DataFrame as CSV
-def convert_df_to_csv(df):
-    output = io.StringIO()
-    df.to_csv(output, index=False)
-    return output.getvalue()
-
-csv_data = convert_df_to_csv(df)
-st.download_button(
-    label="Download Data as CSV",
-    data=csv_data,
-    file_name="data.csv",
-    mime="text/csv"
-)
 
 es_info = ex.opensearch_client.info()
 st.text_area(f'Elastic Search Info: {es_info["cluster_name"]}', height=100)
