@@ -161,3 +161,62 @@ else:
 
 # To stop Elasticsearch when done:
 # es_process.terminate()  # Or `es_process.kill()`
+
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import io
+
+# Title of the app
+st.title("Simple Streamlit App")
+
+# Sidebar for radio buttons
+st.sidebar.header("Options")
+radio_choice = st.sidebar.radio("Select an option:", ["Show Graph", "Show Data"])
+
+# Sample DataFrame
+df = pd.DataFrame({
+    "Name": ["Alice", "Bob", "Charlie", "David", "Eva"],
+    "Age": [25, 30, 35, 40, 45],
+    "Score": [90, 85, 80, 95, 88]
+})
+
+# Search box
+search_term = st.text_input("Search for a name:", "")
+
+# Filter DataFrame based on search
+if search_term:
+    filtered_df = df[df["Name"].str.contains(search_term, case=False, na=False)]
+else:
+    filtered_df = df
+
+# Show Data or Graph based on radio button selection
+if radio_choice == "Show Data":
+    st.subheader("Data Table")
+    st.write(filtered_df)
+elif radio_choice == "Show Graph":
+    st.subheader("Matplotlib Graph")
+    fig, ax = plt.subplots()
+    x = np.linspace(0, 10, 100)
+    y = np.sin(x)
+    ax.plot(x, y, label="Sine Wave")
+    ax.set_xlabel("X-axis")
+    ax.set_ylabel("Y-axis")
+    ax.legend()
+    st.pyplot(fig)
+
+# Button to download DataFrame as CSV
+def convert_df_to_csv(df):
+    output = io.StringIO()
+    df.to_csv(output, index=False)
+    return output.getvalue()
+
+csv_data = convert_df_to_csv(df)
+st.download_button(
+    label="Download Data as CSV",
+    data=csv_data,
+    file_name="data.csv",
+    mime="text/csv"
+)
+
