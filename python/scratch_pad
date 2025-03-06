@@ -1,21 +1,19 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-import io
-import sys
 import os
-
+import sys
 import importlib
+import json
 
+# Load Excelsior Module
 project_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(os.path.join(project_root, "src"))
 
 import excelsior_es
 importlib.reload(excelsior_es)
-
 from excelsior_es import Excelsior
 
+# Initialize Excelsior
 ex = Excelsior()
 ex.main()
 
@@ -23,32 +21,22 @@ ex.main()
 st.title("Welcome to the Excelsior Test App!")
 st.subheader("Test Portfolio")
 
-df = ex.portfolio
-df.string_test_list = df.string_test_list.apply(lambda x: "\n".join([str(a) for a in x])) 
-st.write(df.astype(str))
-
 # Search box
-search_term = st.text_input(f"Search for a term in the Test Portfolio")
-results = ex.general_portfolio_search(search_term, search_index=ex.portfolio_index_name)
-results = [x['_source'] for x in results]
+search_term = st.text_input("Enter a search term:")
 
-# [{'test_id': 'INT_PTP_002E',
-#   'scenario_name': 'Direct Procurement - MRP Through Invoicing with Quality (Rejection) during In-bound process',
-#   'scenario_description': 'Standard MRP Direct Procumren Scenario though Invoicing that includes PO folder with In-bound Quality (Rejection) process',
-#   'variant': '',
-#   'string_test_list': ['STR L3 Planning Execution (Prod Ops)',
-#    'STR L3 Purchase Requisition Management (MRP/Non-MRP) & Approval (Supply Chain)',
-#    'STR L3 Purchase Order Generation, Approval And Release Strategy (Supply Chain)',
-#    'STR L3 Supplier PO Communication, Acknowledgement & Schedule Management (Supply Chain)',
-#    'STR L3 Receiving Inspection and Defect Documentation (MES) (Prod Ops)',
-#    'STR L3 Indirect Tax Determination Engine (Finance)',
-#    'STR L3 Warehouse Inbound Processing (Prod Ops)',
-#    'STR L3 Execute & Analyze Pegging (Finance)',
-#    'STR L3 Perform Quality Inspection (MES)',
-#    'STR L3 Receiving Inspection and Defect Documentation (MES) (Prod Ops)',
-#    'STR L3 Return & Repair Purchase Order Processing (Supply Chain)',
-#    'STR L3 Review Financial Postings (Finance)']}]
+if search_term:
+    # Execute search
+    results = ex.general_portfolio_search(search_term, search_index=ex.portfolio_index_name)
+    results = [x["_source"] for x in results]  # Extract only the "_source" field
 
+    if results:
+        # Display in collapsible JSON format
+        st.subheader("Search Results (Formatted View)")
+        st.json(results)
 
-es_info = ex.opensearch_client.info()
-st.text_area(f'Elastic Search Info: {es_info["cluster_name"]}', height=100)
+        # Display in a scrollable raw JSON box
+        formatted_json = json.dumps(results, indent=4)
+        st.subheader("Raw JSON Output")
+        st.text_area("Raw JSON:", formatted_json, height=300)
+    else:
+        st.write("No matching results found.")
