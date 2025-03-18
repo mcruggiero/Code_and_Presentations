@@ -24,3 +24,6 @@ if not os.path.exists(link_path):
     os.system(f"ln -s {lib_path} {link_path}")
 
 print(f"Symbolic link created: {link_path} -> {lib_path}")
+
+Symbolic link created: /home/jovyan/local/lib/libodbc.so.2 -> /home/jovyan/local/unixODBC-2.3.11/DriverManager/.libs/libodbc.so.2
+ln: failed to create symbolic link '/home/jovyan/local/lib/libodbc.so.2': No such file or directory
