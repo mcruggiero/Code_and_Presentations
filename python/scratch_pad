@@ -53,13 +53,9 @@ Directory already exists: /home/jovyan/local/lib
 Symbolic link created: /home/jovyan/local/lib/libodbc.so.2 -> /home/jovyan/local/unixodbc/lib/libodbc.so.2
 
 
-
-
-
-
-/lib
-!ls -l ~/local/lib
-total 0
-lrwxrwxrwx. 1 1007250000 1007250000 44 Mar 18 14:10 libodbc.so.2 -> /home/jovyan/local/unixodbc/lib/libodbc.so.2
-    print(f"Directory already exists: {lib_dir}")
+!ldd /home/jovyan/local/lib/libodbc.so.2
+	linux-vdso.so.1 (0x00007ffe11367000)
+	libltdl.so.7 => /usr/lib/x86_64-linux-gnu/libltdl.so.7 (0x00007f9ff32db000)
+	libc.so.6 => /usr/lib/x86_64-linux-gnu/libc.so.6 (0x00007f9ff30fa000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f9ff335d000)
 
