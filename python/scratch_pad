@@ -7,3 +7,8 @@ cd unixODBC-2.3.11
 ./configure --prefix=$HOME/local/unixodbc
 make
 make install
+
+export PATH=$HOME/local/unixodbc/bin:$PATH
+export LD_LIBRARY_PATH=$HOME/local/unixodbc/lib:$LD_LIBRARY_PATH
+export ODBCINSTINI=$HOME/local/unixodbc/etc/odbcinst.ini
+export ODBCSYSINI=$HOME/local/unixodbc/etc
