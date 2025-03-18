@@ -77,13 +77,48 @@ ctypes.CDLL("/home/jovyan/local/lib/libodbc.so.2")
 import pyodbc
 print("pyodbc successfully imported!")
 
-MSSQLConnection Error:
-                
-                `driver=None` and no drivers found.
-                
-                To see available drivers execute:
-                >>> pyodbc.drivers()
-                ... ['ODBC Driver 17 for SQL Server']
-                
-                If you know the path of your driver, you can specify it like:
-                driver='/usr/lib64/libodbcinst.so.2'
+import os
+
+# Define directories
+mssql_dir = os.path.expanduser("~/local/mssql")
+lib_dir = os.path.join(mssql_dir, "usr/lib/x86_64-linux-gnu")
+
+# Create directories
+os.makedirs(mssql_dir, exist_ok=True)
+
+# Step 1: Download the Microsoft ODBC Driver for SQL Server
+os.system(f"cd {mssql_dir} && wget -q https://packages.microsoft.com/debian/10/prod/pool/main/m/msodbcsql17/msodbcsql17_17.10.1.1-1_amd64.deb")
+
+# Step 2: Extract the driver (without sudo)
+os.system(f"dpkg-deb -x {mssql_dir}/msodbcsql17_17.10.1.1-1_amd64.deb {mssql_dir}")
+
+# Step 3: Create ODBC configuration file
+odbcinst_path = os.path.join(mssql_dir, "etc/odbcinst.ini")
+os.makedirs(os.path.dirname(odbcinst_path), exist_ok=True)
+with open(odbcinst_path, "w") as f:
+    f.write(f"""[ODBC Driver 17 for SQL Server]
+Description=Microsoft ODBC Driver 17 for SQL Server
+Driver={lib_dir}/libmsodbcsql-17.10.so.1.1
+""")
+
+# Step 4: Set environment variables
+os.environ["ODBCSYSINI"] = os.path.join(mssql_dir, "etc")
+os.environ["ODBCINSTINI"] = os.path.join(mssql_dir, "etc/odbcinst.ini")
+os.environ["LD_LIBRARY_PATH"] = lib_dir + ":" + os.environ.get("LD_LIBRARY_PATH", "")
+
+# Step 5: Verify Installation
+import pyodbc
+print("Available ODBC Drivers:", pyodbc.drivers())
+
+# Step 6: Test Connection (Update SERVER, DATABASE, UID, PWD)
+try:
+    conn = pyodbc.connect(
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=your_server;"
+        "DATABASE=your_db;"
+        "UID=your_user;"
+        "PWD=your_password;"
+    )
+    print("Connected successfully!")
+except Exception as e:
+    print("Connection failed:", e)
