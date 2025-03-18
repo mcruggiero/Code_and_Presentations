@@ -62,3 +62,18 @@ os.environ["LD_PRELOAD"] = "/home/jovyan/local/lib/libodbc.so.2"
 
 ['', '/usr/local/lib/python39.zip', '/usr/local/lib/python3.9', '/usr/local/lib/python3.9/lib-dynload', '/home/jovyan/.local/lib/python3.9/site-packages', '/usr/local/lib/python3.9/site-packages']
 
+import os
+import ctypes
+
+# Ensure library paths are correctly set
+os.environ["LD_LIBRARY_PATH"] = "/home/jovyan/local/lib:" + os.environ.get("LD_LIBRARY_PATH", "")
+os.environ["ODBCINSTINI"] = "/home/jovyan/local/unixodbc/etc/odbcinst.ini"
+os.environ["ODBCSYSINI"] = "/home/jovyan/local/unixodbc/etc"
+
+# Try loading ODBC library manually
+ctypes.CDLL("/home/jovyan/local/lib/libodbc.so.2")
+
+# Now try importing pyodbc
+import pyodbc
+print("pyodbc successfully imported!")
+
