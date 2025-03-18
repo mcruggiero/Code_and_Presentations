@@ -61,3 +61,12 @@ Available ODBC Drivers: []
 /home/jovyan/local/unixODBC-2.3.11/exe/odbcinst
 /home/jovyan/local/unixODBC-2.3.11/exe/.libs/odbcinst
 /home/jovyan/local/unixODBC-2.3.11/odbcinst
+
+import os
+
+# Add unixODBC binary directory to PATH
+os.environ["PATH"] = "/home/jovyan/local/unixodbc/bin:" + os.environ.get("PATH", "")
+os.environ["LD_LIBRARY_PATH"] = "/home/jovyan/local/unixodbc/lib:" + os.environ.get("LD_LIBRARY_PATH", "")
+
+print("Updated PATH:", os.environ["PATH"])
+print("Updated LD_LIBRARY_PATH:", os.environ["LD_LIBRARY_PATH"])
