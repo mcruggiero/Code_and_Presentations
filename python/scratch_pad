@@ -56,4 +56,5 @@ import os
 
 os.environ["LD_LIBRARY_PATH"] = "/home/jovyan/local/lib:" + os.environ.get("LD_LIBRARY_PATH", "")
 print("Updated LD_LIBRARY_PATH:", os.environ["LD_LIBRARY_PATH"])
+os.environ["LD_PRELOAD"] = "/home/jovyan/local/lib/libodbc.so.2"
 
