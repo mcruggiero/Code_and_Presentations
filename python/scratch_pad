@@ -122,3 +122,10 @@ try:
     print("Connected successfully!")
 except Exception as e:
     print("Connection failed:", e)
+
+with open(os.path.expanduser("~/local/mssql/etc/odbcinst.ini"), "w") as f:
+    f.write("""[ODBC Driver 17 for SQL Server]
+Description=Microsoft ODBC Driver 17 for SQL Server
+Driver=/home/jovyan/local/mssql/usr/lib/x86_64-linux-gnu/libmsodbcsql-17.10.so.1.1
+""")
+
