@@ -77,3 +77,13 @@ ctypes.CDLL("/home/jovyan/local/lib/libodbc.so.2")
 import pyodbc
 print("pyodbc successfully imported!")
 
+MSSQLConnection Error:
+                
+                `driver=None` and no drivers found.
+                
+                To see available drivers execute:
+                >>> pyodbc.drivers()
+                ... ['ODBC Driver 17 for SQL Server']
+                
+                If you know the path of your driver, you can specify it like:
+                driver='/usr/lib64/libodbcinst.so.2'
