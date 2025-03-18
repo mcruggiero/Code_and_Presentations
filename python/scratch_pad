@@ -60,3 +60,5 @@ os.environ["LD_PRELOAD"] = "/home/jovyan/local/lib/libodbc.so.2"
 
 !pip install --force-reinstall --no-cache-dir pyodbc
 
+['', '/usr/local/lib/python39.zip', '/usr/local/lib/python3.9', '/usr/local/lib/python3.9/lib-dynload', '/home/jovyan/.local/lib/python3.9/site-packages', '/usr/local/lib/python3.9/site-packages']
+
