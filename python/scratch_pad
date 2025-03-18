@@ -27,3 +27,16 @@ print(f"Symbolic link created: {link_path} -> {lib_path}")
 
 Symbolic link created: /home/jovyan/local/lib/libodbc.so.2 -> /home/jovyan/local/unixODBC-2.3.11/DriverManager/.libs/libodbc.so.2
 ln: failed to create symbolic link '/home/jovyan/local/lib/libodbc.so.2': No such file or directory
+
+import os
+
+# Define the missing directory
+lib_dir = os.path.expanduser("~/local/lib")
+
+# Create the directory if it does not exist
+if not os.path.exists(lib_dir):
+    os.makedirs(lib_dir)
+    print(f"Created directory: {lib_dir}")
+else:
+    print(f"Directory already exists: {lib_dir}")
+
