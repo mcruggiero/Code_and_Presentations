@@ -54,3 +54,10 @@ import pyodbc
 print("Available ODBC Drivers:", pyodbc.drivers())
 ODBC configuration updated!
 Available ODBC Drivers: []
+
+
+!find / -name "odbcinst" 2>/dev/null
+/home/jovyan/local/unixodbc/bin/odbcinst
+/home/jovyan/local/unixODBC-2.3.11/exe/odbcinst
+/home/jovyan/local/unixODBC-2.3.11/exe/.libs/odbcinst
+/home/jovyan/local/unixODBC-2.3.11/odbcinst
