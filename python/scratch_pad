@@ -12,3 +12,15 @@ export PATH=$HOME/local/unixodbc/bin:$PATH
 export LD_LIBRARY_PATH=$HOME/local/unixodbc/lib:$LD_LIBRARY_PATH
 export ODBCINSTINI=$HOME/local/unixodbc/etc/odbcinst.ini
 export ODBCSYSINI=$HOME/local/unixodbc/etc
+
+import os
+
+# Define paths (Adjust these based on your actual installation)
+lib_path = os.path.expanduser("~/local/unixodbc/lib/libodbc.so.2")
+link_path = os.path.expanduser("~/local/lib/libodbc.so.2")
+
+# Create symbolic link if it doesn't exist
+if not os.path.exists(link_path):
+    os.system(f"ln -s {lib_path} {link_path}")
+
+print(f"Symbolic link created: {link_path} -> {lib_path}")
