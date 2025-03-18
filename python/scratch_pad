@@ -129,3 +129,12 @@ Description=Microsoft ODBC Driver 17 for SQL Server
 Driver=/home/jovyan/local/mssql/usr/lib/x86_64-linux-gnu/libmsodbcsql-17.10.so.1.1
 """)
 
+import os
+
+os.environ["ODBCSYSINI"] = os.path.expanduser("~/local/mssql/etc")
+os.environ["ODBCINSTINI"] = os.path.expanduser("~/local/mssql/etc/odbcinst.ini")
+os.environ["LD_LIBRARY_PATH"] = os.path.expanduser("~/local/mssql/usr/lib/x86_64-linux-gnu") + ":" + os.environ.get("LD_LIBRARY_PATH", "")
+
+print("ODBC configuration updated!")
+
+
