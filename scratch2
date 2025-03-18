@@ -1,0 +1,56 @@
+import os
+import ctypes
+​
+# Ensure library paths are correctly set
+os.environ["LD_LIBRARY_PATH"] = "/home/jovyan/local/lib:" + os.environ.get("LD_LIBRARY_PATH", "")
+os.environ["ODBCINSTINI"] = "/home/jovyan/local/unixodbc/etc/odbcinst.ini"
+os.environ["ODBCSYSINI"] = "/home/jovyan/local/unixodbc/etc"
+​
+# Try loading ODBC library manually
+ctypes.CDLL("/home/jovyan/local/lib/libodbc.so.2")
+​
+# Define directories
+mssql_dir = os.path.expanduser("~/local/mssql")
+lib_dir = os.path.join(mssql_dir, "usr/lib/x86_64-linux-gnu")
+​
+# Create directories
+os.makedirs(mssql_dir, exist_ok=True)
+​
+# Step 1: Download the Microsoft ODBC Driver for SQL Server
+os.system(f"cd {mssql_dir} && wget -q https://packages.microsoft.com/debian/10/prod/pool/main/m/msodbcsql17/msodbcsql17_17.10.1.1-1_amd64.deb")
+​
+# Step 2: Extract the driver (without sudo)
+os.system(f"dpkg-deb -x {mssql_dir}/msodbcsql17_17.10.1.1-1_amd64.deb {mssql_dir}")
+​
+# Step 3: Create ODBC configuration file
+odbcinst_path = os.path.join(mssql_dir, "etc/odbcinst.ini")
+os.makedirs(os.path.dirname(odbcinst_path), exist_ok=True)
+with open(odbcinst_path, "w") as f:
+    f.write(f"""[ODBC Driver 17 for SQL Server]
+Description=Microsoft ODBC Driver 17 for SQL Server
+Driver={lib_dir}/libmsodbcsql-17.10.so.1.1
+""")
+​
+# Step 4: Set environment variables
+os.environ["ODBCSYSINI"] = os.path.join(mssql_dir, "etc")
+os.environ["ODBCINSTINI"] = os.path.join(mssql_dir, "etc/odbcinst.ini")
+os.environ["LD_LIBRARY_PATH"] = lib_dir + ":" + os.environ.get("LD_LIBRARY_PATH", "")
+​
+with open(os.path.expanduser("~/local/mssql/etc/odbcinst.ini"), "w") as f:
+    f.write("""[ODBC Driver 17 for SQL Server]
+Description=Microsoft ODBC Driver 17 for SQL Server
+Driver=/home/jovyan/local/mssql/usr/lib/x86_64-linux-gnu/libmsodbcsql-17.10.so.1.1
+""")
+    
+​
+os.environ["ODBCSYSINI"] = os.path.expanduser("~/local/mssql/etc")
+os.environ["ODBCINSTINI"] = os.path.expanduser("~/local/mssql/etc/odbcinst.ini")
+os.environ["LD_LIBRARY_PATH"] = os.path.expanduser("~/local/mssql/usr/lib/x86_64-linux-gnu") + ":" + os.environ.get("LD_LIBRARY_PATH", "")
+​
+print("ODBC configuration updated!")
+​
+# Step 5: Verify Installation
+import pyodbc
+print("Available ODBC Drivers:", pyodbc.drivers())
+ODBC configuration updated!
+Available ODBC Drivers: []
