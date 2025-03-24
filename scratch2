@@ -1,13 +1,5 @@
-st.write(client.info())
-             ^^^^^^^^^^^^^File "/usr/local/lib/python3.11/site-packages/elasticsearch/_sync/client/utils.py", line 455, in wrapped
-    return api(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^File "/usr/local/lib/python3.11/site-packages/elasticsearch/_sync/client/__init__.py", line 3042, in info
-    return self.perform_request(  # type: ignore[return-value]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^File "/usr/local/lib/python3.11/site-packages/elasticsearch/_sync/client/_base.py", line 271, in perform_request
-    response = self._perform_request(
-               ^^^^^^^^^^^^^^^^^^^^^^File "/usr/local/lib/python3.11/site-packages/elasticsearch/_sync/client/_base.py", line 316, in _perform_request
-    meta, resp_body = self.transport.perform_request(
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^File "/usr/local/lib/python3.11/site-packages/elastic_transport/_transport.py", line 342, in perform_request
-    resp = node.perform_request(
-           ^^^^^^^^^^^^^^^^^^^^^File "/usr/local/lib/python3.11/site-packages/elastic_transport/_node/_http_urllib3.py", line 202, in perform_request
-    raise err from e
+https://opster.com/guides/elasticsearch/operations/elasticsearch-cluster-setup/
+https://www.howtoforge.com/how-to-setup-elasticsearch-cluster-with-3-nodes-on-ubuntu/
+https://logz.io/blog/elasticsearch-cluster-tutorial/
+https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster.html
+https://www.youtube.com/watch?v=XyQ4AN1Jn78
