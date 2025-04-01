@@ -1,72 +1,8 @@
-## Interpreting the OpenSearch Search Response
-
-When you execute a search query in OpenSearch using the Python client, the response is a dictionary that contains multiple layers of metadata and actual results. Here’s how to interpret it:
-
-### Top-Level Fields
-
-- **`took`**:  
-  Indicates how many milliseconds the query took to execute on the server.  
-  This can be used to measure search performance.
-
-- **`timed_out`**:  
-  Boolean flag — `False` means the query completed successfully within the timeout window.
-
-- **`_shards`**:  
-  Details about how the query was distributed across the shards.
-  - `total`: The number of shards queried (based on index configuration).
-  - `successful`: How many shards returned results successfully.
-  - `failed`: Number of shards that failed to respond (ideally 0).
-  - `skipped`: Number of shards skipped due to routing or filtering.
-
----
-
-### `hits` Object
-
-This section contains the actual search results.
-
-- **`total`**:  
-  The total number of documents that matched the query.
-  - `value`: The number of matched documents (e.g., 653).
-  - `relation`: Can be `eq` (exact) or `gte` (estimated lower bound).
-
-- **`max_score`**:  
-  The highest `_score` of all returned hits. Useful for relevance ranking.
-
-- **`hits`**:  
-  A list of documents (usually truncated to the top `size` results).
-
----
-
-### Each Hit in the `hits` List
-
-Each item in the list is a matching document with additional metadata:
-
-- **`_index`**:  
-  The name of the index the document belongs to (`ai_string_tests` in this case).
-
-- **`_id`**:  
-  The unique document ID assigned by OpenSearch.
-
-- **`_score`**:  
-  A relevance score (used mostly in `match` or `multi_match` queries).  
-  A score of 1.0 is common in `match_all` or `term` queries with no ranking.
-
-- **`_source`**:  
-  The actual content of the document as it was indexed. This includes all the fields such as:
-  - `step_json` and `ai_json`: Nested JSON containing structured process steps.
-  - `created`, `modified`: Dates of creation and last modification.
-  - `name`, `path`, `sheet_name`: File-related metadata.
-  - `ai_text`: A large blob of text with critique and reformatted JSON.
-  - `title`, `creator`, `keywords`: Metadata for sorting, filtering, or searching.
-
----
-
-### Summary
-
-This structure allows OpenSearch to return both metadata (for performance monitoring and routing) and actual content (for your application logic or frontend display).
-
-You can access just the documents using:
-
-```python
-results = client.search(index="ai_string_tests", body={"query": {"match_all": {}}, "size": 1})
-docs = [hit["_source"] for hit in results["hits"]["hits"]]
+query = {
+  "query": {
+    "match_phrase": {
+      "path": "itc-2"
+    }
+  }
+}
+results = client.search(index="ai_string_tests", body=query)
