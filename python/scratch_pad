@@ -1,24 +1,24 @@
-# Combined query: fuzzy match in ai_text AND exact phrase in path
-# ---------------------------------------------------------------
-# This example shows a `bool` query with two `must` clauses:
-# - A fuzzy `match` query on the `ai_text` field (full-text search, allowing typos)
-# - An exact `match_phrase` on the `path` field (must contain the exact string "itc-3")
+# Fuzzy search inside a JSON string field using dot notation
+# and an exact phrase match on the 'path' field.
 
-combined_query = {
+# Assumes 'ai_json.0.Step Description' is NOT mapped as a nested type.
+# If it is a nested type, a different structure is required (using a nested query).
+
+query = {
     "query": {
         "bool": {
             "must": [
                 {
                     "match": {
-                        "ai_text": {
-                            "query": "log into sap",   # Approximate search term
+                        "ai_json.0.Step Description": {
+                            "query": "login sap hana",  # Approximate string to match fuzzily
                             "fuzziness": "AUTO"
                         }
                     }
                 },
                 {
                     "match_phrase": {
-                        "path": "itc-3"  # Exact phrase match in the path
+                        "path": "itc-3"  # Exact phrase must appear in the path field
                     }
                 }
             ]
@@ -26,10 +26,11 @@ combined_query = {
     }
 }
 
-response = client.search(index="ai_string_tests", body=combined_query)
+response = client.search(index="ai_string_tests", body=query)
 
-print("Documents with fuzzy match in ai_text and exact phrase 'itc-3' in path:")
+print("Results for fuzzy match inside ai_json and exact 'itc-3' in path:")
 for hit in response["hits"]["hits"]:
-    print("Path:", hit["_source"]["path"])
-    print("Excerpt from ai_text:", hit["_source"]["ai_text"][:300])  # Preview only
+    print("Path:", hit["_source"].get("path"))
+    step = hit["_source"].get("ai_json", {}).get("0", {}).get("Step Description", "")
+    print("Step Description:", step)
     print("---")
