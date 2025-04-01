@@ -1,38 +1,50 @@
-# This query performs:
-# - A fuzzy match inside a nested field (ai_json)
-# - An exact match_phrase on the 'path' field
+import copy
+import random
+import string
+from datetime import date
 
-nested_fuzzy_query = {
+# Step 1: Perform an exact match search on the title field (use the .keyword subfield for exact matching)
+search_query = {
     "query": {
-        "bool": {
-            "must": [
-                {
-                    "nested": {
-                        "path": "ai_json",
-                        "query": {
-                            "match": {
-                                "ai_json.0.Step Description": {
-                                    "query": "login sap hana",
-                                    "fuzziness": "AUTO"
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "match_phrase": {
-                        "path": "itc-3"
-                    }
-                }
-            ]
+        "term": {
+            "title.keyword": {
+                "value": "N3118F TC_NTC01.xlsx"
+            }
         }
     }
 }
 
-response = client.search(index="ai_string_tests", body=nested_fuzzy_query)
+search_result = client.search(index="ai_string_tests", body=search_query)
 
-print("Results for fuzzy match inside ai_json (nested) and exact phrase 'itc-3' in path:")
-for hit in response["hits"]["hits"]:
-    print("Path:", hit["_source"].get("path"))
-    print("Step 0 Description:", hit["_source"].get("ai_json", {}).get("0", {}).get("Step Description", ""))
-    print("---")
+# Step 2: Extract the first matching document
+if not search_result["hits"]["hits"]:
+    print("No document found with that title.")
+else:
+    original_doc = search_result["hits"]["hits"][0]["_source"]
+    print("Original document retrieved.")
+
+    # Step 3: Deep copy and modify the JSON
+    modified_doc = copy.deepcopy(original_doc)
+
+    # Sort the keys of ai_json (changing the order for demonstration)
+    if "ai_json" in modified_doc:
+        ordered_keys = sorted(modified_doc["ai_json"].keys())
+        modified_ai_json = {k: modified_doc["ai_json"][k] for k in ordered_keys}
+        modified_doc["ai_json"] = modified_ai_json
+
+    # Add a new note indicating edit date
+    modified_doc["note"] = f"User edited at {date.today().isoformat()}"
+
+    # Step 4: Create a new index with a random name
+    def generate_index_name(prefix="edited_doc_"):
+        return prefix + ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+
+    new_index = generate_index_name()
+
+    # Optional: create index explicitly (otherwise OpenSearch will auto-create it)
+    client.indices.create(index=new_index, ignore=400)
+
+    # Step 5: Index the modified document into the new index
+    response = client.index(index=new_index, body=modified_doc)
+    print(f"Modified document inserted into new index: {new_index}")
+    print("New document ID:", response["_id"])
