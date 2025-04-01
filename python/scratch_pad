@@ -1,6 +1,15 @@
 def sanitize_input_steps(step_json):
     sanitized_steps = []
+
+    if isinstance(step_json, dict):
+        # Handle dict-like {"0": {...}, "1": {...}}
+        step_json = step_json.values()
+    elif not isinstance(step_json, list):
+        raise ValueError("step_json must be a list or dictionary of steps")
+
     for step in step_json:
+        if not isinstance(step, dict):
+            continue  # skip invalid items
         sanitized_steps.append({
             "Step Number": int(step.get("Step Number", 0)),
             "Step Description": step.get("Step Description", "").strip(),
@@ -19,39 +28,3 @@ def sanitize_input_steps(step_json):
             }
         })
     return sanitized_steps
-
-# I want to make sure to clear out all of the references
-line_entry = copy.deepcopy(value)
-
-# Sanitize step_json before indexing
-line_entry["step_json"] = sanitize_input_steps(value["step_json"])
-
-completion = ai_client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {"role": "system", "content": role},
-        {"role": "user", "content": json.dumps(line_entry["step_json"])}
-    ]
-)
-
-# Generate AI text
-ai_text = completion.choices[0].message.content
-line_entry["ai_text"] = ai_text
-
-match = re.search(pattern, ai_text, re.DOTALL)
-if not match:
-    raise ValueError("GPT response did not contain valid JSON block.")
-
-ai_json_raw = json.loads(match.group(1))
-line_entry["ai_json"] = sanitize_input_steps(ai_json_raw)
-
-# Send this sanitized text to ES
-client.index(index=index_name, id=key, body=line_entry)
-
-print(f'{key} successfully loaded to ES\n')
-
-just_sheets[key] = line_entry
-
-with open('ai_3.pkl', 'wb') as file:
-    pickle.dump(just_sheets, file)
-
