@@ -1,23 +1,65 @@
-index_name = "ai_string_tests"
-prod_name = "ai_string_tests_prod"
-
 mapping = {
-    "settings" : {
+    "settings": {
         "number_of_shards": 5,
         "number_of_replicas": 2,
-        "index.mapping.total_fields.limit": 100_000,
-    
+        "index.mapping.total_fields.limit": 100000
     },
     "mappings": {
+        "dynamic_templates": [
+            {
+                "strings_as_text": {
+                    "match_mapping_type": "string",
+                    "mapping": {
+                        "type": "text"
+                    }
+                }
+            }
+        ],
         "properties": {
             "name": {"type": "text"},
             "sheet_name": {"type": "text"},
             "extension": {"type": "text"},
             "creator": {"type": "text"},
             "last_modified_by": {"type": "text"},
-            "title": {"type": "text"},
+            "title": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 200000
+                    }
+                }
+            },
             "keywords": {"type": "text"},
-            "step_json": {"type": "nested"},
+            "step_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": {"type": "long"},
+                    "Step Description": {"type": "text"},
+                    "Step Expected Result": {"type": "text"},
+                    "Details": {
+                        "type": "object",
+                        "properties": {
+                            "Field Instructions": {
+                                "type": "object",
+                                "properties": {
+                                    "Field": {"type": "text"},
+                                    "Value": {"type": "text"}
+                                }
+                            },
+                            "SAP T-code": {"type": "text"}
+                        }
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "properties": {
+                            "Action": {"type": "text"},
+                            "Field": {"type": "text"},
+                            "Value": {"type": "text"}
+                        }
+                    }
+                }
+            },
             "path": {"type": "text"},
             "created": {"type": "date", "format": "yyyy-MM-dd"},
             "modified": {"type": "date", "format": "yyyy-MM-dd"},
@@ -26,20 +68,41 @@ mapping = {
                 "fields": {
                     "keyword": {
                         "type": "keyword",
-                        "ignore_above": 200_000
+                        "ignore_above": 200000
                     }
                 }
             },
-            "ai_json": {"type": "nested"},
-            'information': {"type": "text"},
-            'other': {"type": "text"},
+            "ai_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": {"type": "long"},
+                    "Step Description": {"type": "text"},
+                    "Step Expected Result": {"type": "text"},
+                    "Details": {
+                        "type": "object",
+                        "properties": {
+                            "Field Instructions": {
+                                "type": "object",
+                                "properties": {
+                                    "Field": {"type": "text"},
+                                    "Value": {"type": "text"}
+                                }
+                            },
+                            "SAP T-code": {"type": "text"}
+                        }
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "properties": {
+                            "Action": {"type": "text"},
+                            "Field": {"type": "text"},
+                            "Value": {"type": "text"}
+                        }
+                    }
+                }
+            },
+            "information": {"type": "text"},
+            "other": {"type": "text"}
         }
     }
 }
-
-for index in [index_name, prod_name]:
-    client.indices.delete(index=index, ignore=[400,404])
-
-    if not client.indices.exists(index=index):
-        response = client.indices.create(index=index, 
-                                         body=mapping)
