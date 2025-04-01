@@ -1,8 +1,40 @@
+# Exact match on a specific phrase in the `path` field
+# -----------------------------------------------------
+# The `match_phrase` query looks for the *exact sequence of terms* in the specified field.
+# It is different from a regular `match`, which allows term reordering and partial matches.
+# This query will return documents where the `path` field contains the exact phrase "itc-2",
+# with terms in that specific order.
+
 query = {
-  "query": {
-    "match_phrase": {
-      "path": "itc-2"
+    "query": {
+        "match_phrase": {
+            "path": "itc-2"
+        }
     }
-  }
 }
+
 results = client.search(index="ai_string_tests", body=query)
+print("Documents with exact phrase 'itc-2' in the path field:")
+for hit in results["hits"]["hits"]:
+    print(hit["_source"]["path"])
+
+
+# Dot notation example for querying inside a nested object
+# --------------------------------------------------------
+# If your mapping contains a structured JSON object like `step_json` or `ai_json`,
+# you can access subfields using dot notation.
+# For example: step_json.0.Step Description
+# Note: This assumes step_json is NOT mapped as a nested type. If it is, you must use a nested query.
+
+dot_query = {
+    "query": {
+        "match_phrase": {
+            "step_json.0.Step Description": "log into SAP"
+        }
+    }
+}
+
+nested_results = client.search(index="ai_string_tests", body=dot_query)
+print("\nDocuments where step 0's description contains exact phrase 'log into SAP':")
+for hit in nested_results["hits"]["hits"]:
+    print(hit["_source"]["step_json"]["0"]["Step Description"])
