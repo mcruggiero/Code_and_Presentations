@@ -1,40 +1,35 @@
-# Exact match on a specific phrase in the `path` field
-# -----------------------------------------------------
-# The `match_phrase` query looks for the *exact sequence of terms* in the specified field.
-# It is different from a regular `match`, which allows term reordering and partial matches.
-# This query will return documents where the `path` field contains the exact phrase "itc-2",
-# with terms in that specific order.
+# Combined query: fuzzy match in ai_text AND exact phrase in path
+# ---------------------------------------------------------------
+# This example shows a `bool` query with two `must` clauses:
+# - A fuzzy `match` query on the `ai_text` field (full-text search, allowing typos)
+# - An exact `match_phrase` on the `path` field (must contain the exact string "itc-3")
 
-query = {
+combined_query = {
     "query": {
-        "match_phrase": {
-            "path": "itc-2"
+        "bool": {
+            "must": [
+                {
+                    "match": {
+                        "ai_text": {
+                            "query": "log into sap",   # Approximate search term
+                            "fuzziness": "AUTO"
+                        }
+                    }
+                },
+                {
+                    "match_phrase": {
+                        "path": "itc-3"  # Exact phrase match in the path
+                    }
+                }
+            ]
         }
     }
 }
 
-results = client.search(index="ai_string_tests", body=query)
-print("Documents with exact phrase 'itc-2' in the path field:")
-for hit in results["hits"]["hits"]:
-    print(hit["_source"]["path"])
+response = client.search(index="ai_string_tests", body=combined_query)
 
-
-# Dot notation example for querying inside a nested object
-# --------------------------------------------------------
-# If your mapping contains a structured JSON object like `step_json` or `ai_json`,
-# you can access subfields using dot notation.
-# For example: step_json.0.Step Description
-# Note: This assumes step_json is NOT mapped as a nested type. If it is, you must use a nested query.
-
-dot_query = {
-    "query": {
-        "match_phrase": {
-            "step_json.0.Step Description": "log into SAP"
-        }
-    }
-}
-
-nested_results = client.search(index="ai_string_tests", body=dot_query)
-print("\nDocuments where step 0's description contains exact phrase 'log into SAP':")
-for hit in nested_results["hits"]["hits"]:
-    print(hit["_source"]["step_json"]["0"]["Step Description"])
+print("Documents with fuzzy match in ai_text and exact phrase 'itc-3' in path:")
+for hit in response["hits"]["hits"]:
+    print("Path:", hit["_source"]["path"])
+    print("Excerpt from ai_text:", hit["_source"]["ai_text"][:300])  # Preview only
+    print("---")
