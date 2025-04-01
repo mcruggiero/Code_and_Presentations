@@ -1,47 +1,82 @@
 pattern = r'```json\s(.*?)```'
 time_format = '%Y-%m-%d'
 
-passes = 0
-run = 0
+# Function to sanitize and format GPT-generated JSON responses
+def sanitize_steps(parsed_json):
+    sanitized = []
+    for step in parsed_json:
+        sanitized.append({
+            "Step Number": int(step.get("Step Number", 0)),
+            "Step Description": step.get("Step Description", "").strip(),
+            "Step Expected Result": step.get("Step Expected Result", "").strip(),
+            "Details": {
+                "SAP T-code": step.get("Details", {}).get("SAP T-code", "TBD"),
+                "Field Instructions": {
+                    "Field": step.get("Details", {}).get("Field Instructions", {}).get("Field", "TBD"),
+                    "Value": step.get("Details", {}).get("Field Instructions", {}).get("Value", "TBD")
+                }
+            },
+            "Detailed Instructions": {
+                "Action": step.get("Detailed Instructions", {}).get("Action", "TBD"),
+                "Field": step.get("Detailed Instructions", {}).get("Field", "TBD"),
+                "Value": step.get("Detailed Instructions", {}).get("Value", "TBD")
+            }
+        })
+    return sanitized
 
-while passes < 10: #tries > 0:
+passes = 0
+max_passes = 10
+
+while passes < max_passes:
     for key, value in just_sheets.items():
 
-        print(passes, key)
+        print(f"Pass {passes}, Processing Key: {key}")
         if "ai_json" not in value:
-            try:
+            success = False
+            attempt = 0
 
-                # I want to make sure to clear out all of the references
-                line_entry = copy.deepcopy(value)
+            while not success and attempt < 3:
+                try:
+                    line_entry = copy.deepcopy(value)
 
-                completion = ai_client.chat.completions.create(
-                  model="gpt-4o",
-                  messages=[
-                    {"role": "system", "content": role},
-                    {"role": "user", "content": f'{value["step_json"]}'}
-                  ]
-                )
-                
-                # Jared's Stuff
+                    completion = ai_client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "system", "content": role},
+                            {"role": "user", "content": json.dumps(value["step_json"])}
+                        ]
+                    )
 
-                # Generate AI text
-                line_entry["ai_text"]= ai_text = completion.choices[0].message.content
-                match = re.search(pattern, ai_text, re.DOTALL).group(1)
-                line_entry["ai_json"] = json.loads(match)
+                    ai_text = completion.choices[0].message.content
+                    line_entry["ai_text"] = ai_text
 
-                # Send this text to ES
-                client.index(index=index_name, id=key, body=line_entry)
+                    match = re.search(pattern, ai_text, re.DOTALL)
+                    if not match:
+                        raise ValueError("GPT response did not contain valid JSON block.")
 
-                print(f'{key} successfully loaded to ES\n')
-                time.sleep(1)
+                    ai_json_raw = json.loads(match.group(1))
+                    ai_json_clean = sanitize_steps(ai_json_raw)
 
-                just_sheets[key] = line_entry
+                    line_entry["ai_json"] = ai_json_clean
 
-                with open('ai_3.pkl', 'wb') as file:
-                    pickle.dump(just_sheets, file)
-            
-            except Exception as e:   
-                print(e)
-                pass
-    
+                    client.index(index=index_name, id=key, body=line_entry)
+
+                    print(f"{key} successfully loaded to ES\n")
+
+                    just_sheets[key] = line_entry
+
+                    with open('ai_3.pkl', 'wb') as file:
+                        pickle.dump(just_sheets, file)
+
+                    success = True
+                    time.sleep(1)
+
+                except Exception as e:
+                    attempt += 1
+                    print(f"Attempt {attempt} for key {key} failed: {e}")
+                    time.sleep(1)
+
+            if not success:
+                print(f"Failed to process key {key} after 3 attempts. Skipping.")
+
     passes += 1
