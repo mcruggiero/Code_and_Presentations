@@ -1,116 +1,25 @@
-import copy
-import random
-import string
-from datetime import date
-
-# Step 1: Perform an exact match search on the title field (use the .keyword subfield for exact matching)
-search_query = {
-    "query": {
-        "term": {
-            "title.keyword": {
-                "value": "N3118F TC_NTC01.xlsx"
-            }
-        }
-    }
-}
-
-search_result = client.search(index="ai_string_tests", body=search_query)
-
-# Step 2: Extract the first matching document
-if not search_result["hits"]["hits"]:
-    print("No document found with that title.")
-else:
-    original_doc = search_result["hits"]["hits"][0]["_source"]
-    print("Original document retrieved.")
-
-    # Step 3: Deep copy and modify the JSON
+    # Step 3: Copy and modify the document
     modified_doc = copy.deepcopy(original_doc)
 
-    # Sort the keys of ai_json (changing the order for demonstration)
-    if "ai_json" in modified_doc:
-        ordered_keys = sorted(modified_doc["ai_json"].keys())
-        modified_ai_json = {k: modified_doc["ai_json"][k] for k in ordered_keys}
-        modified_doc["ai_json"] = modified_ai_json
-
-    # Add a new note indicating edit date
-    modified_doc["note"] = f"User edited at {date.today().isoformat()}"
-
-    # Step 4: Create a new index with a random name
-    def generate_index_name(prefix="edited_doc_"):
-        return prefix + ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
-
-    new_index = generate_index_name()
-
-    # Optional: create index explicitly (otherwise OpenSearch will auto-create it)
-    client.indices.create(index=new_index, ignore=400)
-
-    # Step 5: Index the modified document into the new index
-    response = client.index(index=new_index, body=modified_doc)
-    print(f"Modified document inserted into new index: {new_index}")
-    print("New document ID:", response["_id"])
-
-import copy
-import random
-import string
-from datetime import date
-
-# === WORKFLOW: USER-DRIVEN JSON EDITING IN OPENSEARCH ===
-# This script models the process your app will perform:
-# 1. Search for a document by exact match (e.g., title)
-# 2. Extract and copy the document for editing
-# 3. Modify the step_json field (simulate user edits)
-# 4. Add a note for auditing (e.g., edit timestamp)
-# 5. Insert the edited document into a new index
-
-# -------------------------------
-# Step 1: Search for a document by title (exact match using .keyword)
-search_query = {
-    "query": {
-        "term": {
-            "title.keyword": {
-                "value": "N3118F TC_NTC01.xlsx"
-            }
-        }
-    }
-}
-
-search_result = client.search(index="ai_string_tests", body=search_query)
-
-if not search_result["hits"]["hits"]:
-    print("No document found with that title.")
-else:
-    # -------------------------------
-    # Step 2: Extract the first result and make a copy for editing
-    original_doc = search_result["hits"]["hits"][0]["_source"]
-    modified_doc = copy.deepcopy(original_doc)
-    print("Document found. Preparing for edit...")
-
-    # -------------------------------
-    # Step 3: Modify the step_json field (simulate user editing the steps)
-    # In your app, this part would come from a form input or UI editor.
+    # Simulate user editing step_json (you can replace this with UI-driven input later)
     if "step_json" in modified_doc:
         modified_doc["step_json"]["99"] = {
             "Step Number": 99,
-            "Step Description": "User-added validation step",
-            "Step Expected Result": "Custom step executed successfully"
+            "Step Description": "User-inserted step from editor",
+            "Step Expected Result": "Custom logic executed"
         }
 
-    # -------------------------------
-    # Step 4: Add a note about who made the change and when
+    # Add a new note field
     modified_doc["note"] = f"User edited at {date.today().isoformat()}"
 
-    # -------------------------------
-    # Step 5: Insert the modified document into a new randomly named index
-    def generate_index_name(prefix="edited_doc_"):
-        return prefix + ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    # Step 4: Reinsert into the same index
+    # Option A: Overwrite existing document by reusing its _id
+    overwrite = False  # Set to True if you want to replace the original
 
-    new_index = generate_index_name()
-
-    # Create the index (optional: copy settings/mappings from original if needed)
-    client.indices.create(index=new_index, ignore=400)
-
-    # Index the new document
-    response = client.index(index=new_index, body=modified_doc)
-
-    print(f"Edited document inserted into new index: {new_index}")
-    print("New document ID:", response["_id"])
+    if overwrite:
+        response = client.index(index="ai_string_tests", id=original_id, body=modified_doc)
+        print(f"Document overwritten (same ID): {original_id}")
+    else:
+        new_id = str(uuid4())  # Generate a unique ID
+        response = client.index(index="ai_string_tests", id=new_id, body=modified_doc)
+        print(f"Modified document inserted with new ID: {new_id}")
