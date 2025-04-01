@@ -77,3 +77,5 @@ for index in [index_name, prod_name]:
     client.indices.delete(index=index, ignore=[400, 404])
     if not client.indices.exists(index=index):
         client.indices.create(index=index, body=mapping)
+
+RequestError: RequestError(400, 'illegal_argument_exception', 'unknown setting [index.mapping.dynamic] did you mean [index.mapper.dynamic]?')
