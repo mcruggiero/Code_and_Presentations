@@ -15,6 +15,16 @@ mapping = {
             }
         ],
         "properties": {
+            "name": {"type": "text"},
+            "sheet_name": {"type": "text"},
+            "extension": {"type": "text"},
+            "creator": {"type": "text"},
+            "last_modified_by": {"type": "text"},
+            "title": {
+                "type": "text",
+                "fields": {"keyword": {"type": "keyword", "ignore_above": 200000}}
+            },
+            "keywords": {"type": "text"},
             "step_json": {
                 "type": "nested",
                 "properties": {
@@ -25,7 +35,6 @@ mapping = {
                         "type": "object",
                         "dynamic": "strict",
                         "properties": {
-                            "SAP T-code": {"type": "text"},
                             "Field Instructions": {
                                 "type": "object",
                                 "dynamic": "strict",
@@ -33,7 +42,8 @@ mapping = {
                                     "Field": {"type": "text"},
                                     "Value": {"type": "text"}
                                 }
-                            }
+                            },
+                            "SAP T-code": {"type": "text"}
                         }
                     },
                     "Detailed Instructions": {
@@ -47,6 +57,13 @@ mapping = {
                     }
                 }
             },
+            "path": {"type": "text"},
+            "created": {"type": "date", "format": "yyyy-MM-dd"},
+            "modified": {"type": "date", "format": "yyyy-MM-dd"},
+            "ai_text": {
+                "type": "text",
+                "fields": {"keyword": {"type": "keyword", "ignore_above": 200000}}
+            },
             "ai_json": {
                 "type": "nested",
                 "properties": {
@@ -57,7 +74,6 @@ mapping = {
                         "type": "object",
                         "dynamic": "strict",
                         "properties": {
-                            "SAP T-code": {"type": "text"},
                             "Field Instructions": {
                                 "type": "object",
                                 "dynamic": "strict",
@@ -65,7 +81,8 @@ mapping = {
                                     "Field": {"type": "text"},
                                     "Value": {"type": "text"}
                                 }
-                            }
+                            },
+                            "SAP T-code": {"type": "text"}
                         }
                     },
                     "Detailed Instructions": {
@@ -78,7 +95,14 @@ mapping = {
                         }
                     }
                 }
-            }
+            },
+            "information": {"type": "text"},
+            "other": {"type": "text"},
+            "clarity_sequence": {"type": "long"},
+            "accuracy": {"type": "long"},            
+            "actionability": {"type": "long"},
+            "scores": {"type": "long"},
+            "ai_update": {"type": "date", "format": "yyyy-MM-dd"}
         }
     }
 }
