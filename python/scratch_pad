@@ -1,59 +1,36 @@
-# Understanding Indices in OpenSearch
+## Shards and Clusters in OpenSearch
 
-## What is an Index?
+### What is a Cluster?
 
-An **index** in OpenSearch is a logical namespace for storing and organizing documents. If you're familiar with relational databases, you can think of an index as roughly analogous to a table.
+An OpenSearch **cluster** is a group of one or more nodes (servers) that together hold your data and provide search and indexing capabilities.
 
-Each index contains a collection of **documents**, and each document is a structured JSON object.
+- A single-node setup (like most local installations) is still considered a cluster.
+- In a production system, multiple nodes work together for fault tolerance and scalability.
 
-Indices allow OpenSearch to organize, search, and analyze data efficiently.
-
----
-
-## Why Indices Matter
-
-OpenSearch uses indices to:
-
-- Group related documents (e.g., logs, users, transactions)
-- Apply specific settings for performance and scaling (shards, replicas, analyzers)
-- Define mappings (similar to schemas) that declare how fields should be interpreted
-- Apply lifecycle rules (e.g., how long data is retained or when it should be archived)
+Each cluster has:
+- A **unique name** (`cluster_name`)
+- A **set of nodes**
+- One **master node** (can be elected dynamically)
+- Optional **data nodes**, **ingest nodes**, and **coordinating nodes**
 
 ---
 
-## Structure of an Index
+### What is a Shard?
 
-Each index contains:
+A **shard** is a horizontal partition of an index. Every index is split into one or more shards.
 
-- **Documents**: JSON records of structured or semi-structured data.
-- **Mappings**: The schema that defines the types of fields (e.g., text, keyword, date, integer).
-- **Settings**: Shard and replica configurations, analyzers, and more.
+- Each shard is a fully functional and independent "mini-index."
+- Shards allow OpenSearch to distribute data and load across multiple nodes.
 
----
+There are two types of shards:
 
-## Creating an Index (Python Example)
+- **Primary shard**: Required for storing data. Every document belongs to exactly one primary shard.
+- **Replica shard**: A copy of a primary shard. Provides redundancy and improves query throughput.
 
-You can create an index explicitly using the OpenSearch Python client. Here's an example that creates an index called `articles` with defined field types:
+When you create an index, you can define:
 
-```python
-from opensearchpy import OpenSearch
-
-index_name = "articles"
-
-client.indices.create(
-    index=index_name,
-    body={
-        "settings": {
-            "number_of_shards": 1,
-            "number_of_replicas": 1
-        },
-        "mappings": {
-            "properties": {
-                "title": {"type": "text"},
-                "author": {"type": "keyword"},
-                "published": {"type": "date"},
-                "content": {"type": "text"}
-            }
-        }
-    }
-)
+```json
+"settings": {
+  "number_of_shards": 1,
+  "number_of_replicas": 1
+}
