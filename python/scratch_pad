@@ -1,79 +1,13 @@
-## Understanding the Mapping for `ai_string_tests`
+query = {
+    "query": {
+        "term": {
+            "ai_text.keyword": {
+                "value": "Test String"
+            }
+        }
+    }
+}
 
-The mapping for this index defines the structure of documents, including the field names, types, and any additional configurations. Let’s break down each field:
-
-### 1. `ai_json` (type: nested)
-- **Type:** `nested`
-- **Meaning:** This field is expected to hold an array of objects. Using a nested type allows you to perform complex queries on these objects as if they were separate documents, while still keeping them attached to their parent document.
-
-### 2. `ai_text` (type: text with a sub-field)
-- **Type:** `text`
-- **Sub-field:** `keyword`
-  - **Type:** `keyword`
-  - **Setting:** `ignore_above` is set to 200000.
-- **Meaning:** The primary field (`ai_text`) is analyzed, which means it is processed (e.g., tokenized) to support full-text search. The `keyword` sub-field stores the same content in a non-analyzed form, useful for exact matches or aggregations. The `ignore_above` parameter ensures that strings longer than 200,000 characters are not indexed in the keyword sub-field.
-
-### 3. `created` (type: date)
-- **Type:** `date`
-- **Format:** `yyyy-MM-dd`
-- **Meaning:** This field stores dates and is formatted as a four-digit year, two-digit month, and two-digit day (e.g., 2025-04-01). It’s typically used to record when a document was first created.
-
-### 4. `creator` (type: text)
-- **Type:** `text`
-- **Meaning:** Stores the name or identifier of the person or process that created the document. Since it’s a text field, it will be analyzed for full-text search.
-
-### 5. `extension` (type: text)
-- **Type:** `text`
-- **Meaning:** Likely used to store file extensions or similar metadata. Being a text field, it’s suitable for search and analysis.
-
-### 6. `information` (type: text)
-- **Type:** `text`
-- **Meaning:** Holds additional descriptive information. As a text field, it supports full-text search operations.
-
-### 7. `keywords` (type: text)
-- **Type:** `text`
-- **Meaning:** Contains keywords related to the document. This field helps in categorizing or retrieving documents based on associated keywords.
-
-### 8. `last_modified_by` (type: text)
-- **Type:** `text`
-- **Meaning:** Indicates the person or process that last modified the document. This is useful for tracking changes and accountability.
-
-### 9. `modified` (type: date)
-- **Type:** `date`
-- **Format:** `yyyy-MM-dd`
-- **Meaning:** Records the date when the document was last modified, using the same date format as the `created` field.
-
-### 10. `name` (type: text)
-- **Type:** `text`
-- **Meaning:** Could be used to store a title or identifying name for the document. As a text field, it is analyzed to support search.
-
-### 11. `other` (type: text)
-- **Type:** `text`
-- **Meaning:** A general-purpose field for any additional text data that doesn’t fit into the other defined fields.
-
-### 12. `path` (type: text)
-- **Type:** `text`
-- **Meaning:** Stores file paths or URLs. The text type allows for search, though exact matching might require a keyword sub-field if needed.
-
-### 13. `sheet_name` (type: text)
-- **Type:** `text`
-- **Meaning:** Likely stores the name of a sheet from a spreadsheet or similar document structure.
-
-### 14. `step_json` (type: nested)
-- **Type:** `nested`
-- **Meaning:** Similar to `ai_json`, this field is designed to store an array of objects. The nested type allows for querying sub-objects independently while keeping them tied to their parent.
-
-### 15. `title` (type: text)
-- **Type:** `text`
-- **Meaning:** Intended to store the title of the document. It is analyzed for full-text search so that users can search for documents by their title content.
-
----
-
-### Summary
-
-This mapping defines a flexible structure for the `ai_string_tests` index. It uses:
-- **`text` fields** for content that will be analyzed (and in one case, with a `keyword` sub-field for exact matching),
-- **`date` fields** for time-related data formatted as `yyyy-MM-dd`, and
-- **`nested` fields** to handle arrays of objects in a structured way.
-
-By understanding these field types and configurations, you can design queries that precisely target the data you need and ensure your documents are stored in an efficient, searchable manner.
+response = client.search(index="ai_string_tests", body=query)
+for hit in response["hits"]["hits"]:
+    print(hit["_source"])
