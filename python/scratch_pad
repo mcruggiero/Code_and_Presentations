@@ -1,36 +1,15 @@
-## Shards and Clusters in OpenSearch
+# Show the field structure (schema) of the index
+mapping = client.indices.get_mapping(index="ai_string_tests")
+mapping
 
-### What is a Cluster?
+## Inspecting an Existing Index: `ai_string_tests`
 
-An OpenSearch **cluster** is a group of one or more nodes (servers) that together hold your data and provide search and indexing capabilities.
+We can use the OpenSearch client to inspect the structure of an index. There are two main components:
 
-- A single-node setup (like most local installations) is still considered a cluster.
-- In a production system, multiple nodes work together for fault tolerance and scalability.
+1. **Mappings** – This tells us the field names and their data types.
+2. **Settings** – This includes performance-related configurations like the number of shards and replicas.
 
-Each cluster has:
-- A **unique name** (`cluster_name`)
-- A **set of nodes**
-- One **master node** (can be elected dynamically)
-- Optional **data nodes**, **ingest nodes**, and **coordinating nodes**
+### View the Index Mapping (Field Types)
 
----
-
-### What is a Shard?
-
-A **shard** is a horizontal partition of an index. Every index is split into one or more shards.
-
-- Each shard is a fully functional and independent "mini-index."
-- Shards allow OpenSearch to distribute data and load across multiple nodes.
-
-There are two types of shards:
-
-- **Primary shard**: Required for storing data. Every document belongs to exactly one primary shard.
-- **Replica shard**: A copy of a primary shard. Provides redundancy and improves query throughput.
-
-When you create an index, you can define:
-
-```json
-"settings": {
-  "number_of_shards": 1,
-  "number_of_replicas": 1
-}
+```python
+client.indices.get_mapping(index="ai_string_tests")
