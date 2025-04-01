@@ -1,15 +1,18 @@
-# Show the field structure (schema) of the index
-mapping = client.indices.get_mapping(index="ai_string_tests")
-mapping
+{'ai_string_tests': {'mappings': {'properties': {'ai_json': {'type': 'nested'},
+    'ai_text': {'type': 'text',
+     'fields': {'keyword': {'type': 'keyword', 'ignore_above': 200000}}},
+    'created': {'type': 'date', 'format': 'yyyy-MM-dd'},
+    'creator': {'type': 'text'},
+    'extension': {'type': 'text'},
+    'information': {'type': 'text'},
+    'keywords': {'type': 'text'},
+    'last_modified_by': {'type': 'text'},
+    'modified': {'type': 'date', 'format': 'yyyy-MM-dd'},
+    'name': {'type': 'text'},
+    'other': {'type': 'text'},
+    'path': {'type': 'text'},
+    'sheet_name': {'type': 'text'},
+    'step_json': {'type': 'nested'},
+    'title': {'type': 'text'}}}}}
 
-## Inspecting an Existing Index: `ai_string_tests`
 
-We can use the OpenSearch client to inspect the structure of an index. There are two main components:
-
-1. **Mappings** – This tells us the field names and their data types.
-2. **Settings** – This includes performance-related configurations like the number of shards and replicas.
-
-### View the Index Mapping (Field Types)
-
-```python
-client.indices.get_mapping(index="ai_string_tests")
