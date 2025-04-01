@@ -1,82 +1,84 @@
-pattern = r'```json\s(.*?)```'
-time_format = '%Y-%m-%d'
-
-# Function to sanitize and format GPT-generated JSON responses
-def sanitize_steps(parsed_json):
-    sanitized = []
-    for step in parsed_json:
-        sanitized.append({
-            "Step Number": int(step.get("Step Number", 0)),
-            "Step Description": step.get("Step Description", "").strip(),
-            "Step Expected Result": step.get("Step Expected Result", "").strip(),
-            "Details": {
-                "SAP T-code": step.get("Details", {}).get("SAP T-code", "TBD"),
-                "Field Instructions": {
-                    "Field": step.get("Details", {}).get("Field Instructions", {}).get("Field", "TBD"),
-                    "Value": step.get("Details", {}).get("Field Instructions", {}).get("Value", "TBD")
+mapping = {
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 2,
+        "index.mapping.total_fields.limit": 100000
+    },
+    "mappings": {
+        "dynamic": "strict",
+        "dynamic_templates": [
+            {
+                "strings_as_text": {
+                    "match_mapping_type": "string",
+                    "mapping": {"type": "text"}
+                }
+            }
+        ],
+        "properties": {
+            "step_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": {"type": "long"},
+                    "Step Description": {"type": "text"},
+                    "Step Expected Result": {"type": "text"},
+                    "Details": {
+                        "type": "object",
+                        "dynamic": "strict",
+                        "properties": {
+                            "SAP T-code": {"type": "text"},
+                            "Field Instructions": {
+                                "type": "object",
+                                "dynamic": "strict",
+                                "properties": {
+                                    "Field": {"type": "text"},
+                                    "Value": {"type": "text"}
+                                }
+                            }
+                        }
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "dynamic": "strict",
+                        "properties": {
+                            "Action": {"type": "text"},
+                            "Field": {"type": "text"},
+                            "Value": {"type": "text"}
+                        }
+                    }
                 }
             },
-            "Detailed Instructions": {
-                "Action": step.get("Detailed Instructions", {}).get("Action", "TBD"),
-                "Field": step.get("Detailed Instructions", {}).get("Field", "TBD"),
-                "Value": step.get("Detailed Instructions", {}).get("Value", "TBD")
+            "ai_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": {"type": "long"},
+                    "Step Description": {"type": "text"},
+                    "Step Expected Result": {"type": "text"},
+                    "Details": {
+                        "type": "object",
+                        "dynamic": "strict",
+                        "properties": {
+                            "SAP T-code": {"type": "text"},
+                            "Field Instructions": {
+                                "type": "object",
+                                "dynamic": "strict",
+                                "properties": {
+                                    "Field": {"type": "text"},
+                                    "Value": {"type": "text"}
+                                }
+                            }
+                        }
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "dynamic": "strict",
+                        "properties": {
+                            "Action": {"type": "text"},
+                            "Field": {"type": "text"},
+                            "Value": {"type": "text"}
+                        }
+                    }
+                }
             }
-        })
-    return sanitized
-
-passes = 0
-max_passes = 10
-
-while passes < max_passes:
-    for key, value in just_sheets.items():
-
-        print(f"Pass {passes}, Processing Key: {key}")
-        if "ai_json" not in value:
-            success = False
-            attempt = 0
-
-            while not success and attempt < 3:
-                try:
-                    line_entry = copy.deepcopy(value)
-
-                    completion = ai_client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {"role": "system", "content": role},
-                            {"role": "user", "content": json.dumps(value["step_json"])}
-                        ]
-                    )
-
-                    ai_text = completion.choices[0].message.content
-                    line_entry["ai_text"] = ai_text
-
-                    match = re.search(pattern, ai_text, re.DOTALL)
-                    if not match:
-                        raise ValueError("GPT response did not contain valid JSON block.")
-
-                    ai_json_raw = json.loads(match.group(1))
-                    ai_json_clean = sanitize_steps(ai_json_raw)
-
-                    line_entry["ai_json"] = ai_json_clean
-
-                    client.index(index=index_name, id=key, body=line_entry)
-
-                    print(f"{key} successfully loaded to ES\n")
-
-                    just_sheets[key] = line_entry
-
-                    with open('ai_3.pkl', 'wb') as file:
-                        pickle.dump(just_sheets, file)
-
-                    success = True
-                    time.sleep(1)
-
-                except Exception as e:
-                    attempt += 1
-                    print(f"Attempt {attempt} for key {key} failed: {e}")
-                    time.sleep(1)
-
-            if not success:
-                print(f"Failed to process key {key} after 3 attempts. Skipping.")
-
-    passes += 1
+        }
+    }
+}
