@@ -1,13 +1,56 @@
-{'name': '50ce1a654b3c74459fce9d1ab68c8706',
- 'cluster_name': '181596953521:lmx-testing-2',
- 'cluster_uuid': 'mivq_pOBR2GFTMJYdYELdg',
- 'version': {'distribution': 'opensearch',
-  'number': '2.17.0',
-  'build_type': 'tar',
-  'build_hash': 'unknown',
-  'build_date': '2025-02-14T09:39:30.748828589Z',
-  'build_snapshot': False,
-  'lucene_version': '9.11.1',
-  'minimum_wire_compatibility_version': '7.10.0',
-  'minimum_index_compatibility_version': '7.0.0'},
- 'tagline': 'The OpenSearch Project: https://opensearch.org/'}
+## 🔍 Understanding `client.info()` Output
+
+When you call `client.info()` in OpenSearch, you're asking the server for basic metadata about itself — like version, identity, and configuration.
+
+Here’s a breakdown of what each field means:
+
+---
+
+### 🧠 Top-Level Fields
+
+- **`name`**:  
+  This is the name of the OpenSearch node that responded to your request.  
+  👉 In this case: `"50ce1a654b3c74459fce9d1ab68c8706"` — probably auto-generated.
+
+- **`cluster_name`**:  
+  The name of the entire OpenSearch cluster.  
+  👉 Here, it's `"181596953521:lmx-testing-2"` — often includes account or environment info.
+
+- **`cluster_uuid`**:  
+  A unique identifier for the cluster — useful for debugging or verifying consistency.
+
+---
+
+### 📦 `version` Block
+
+This section tells you which version of OpenSearch is running, along with build details.
+
+- **`distribution`**:  
+  Confirms that it's an official `opensearch` distribution (not Elasticsearch or a custom fork).
+
+- **`number`**:  
+  This is the actual version of OpenSearch.  
+  👉 You're running version `2.17.0`.
+
+- **`lucene_version`**:  
+  OpenSearch is built on top of Apache Lucene, a low-level search library.  
+  👉 Lucene version here is `9.11.1`.
+
+- **`build_type`, `build_hash`, `build_date`**:  
+  Mostly useful for internal tracking or debugging (you can skip these for now).
+
+- **`minimum_wire_compatibility_version` / `minimum_index_compatibility_version`**:  
+  These show compatibility boundaries — for example, OpenSearch 2.17 can still talk to nodes as old as version 7.10.0.
+
+---
+
+### 💬 `tagline`
+
+Just a nice reminder that you're using the OpenSearch project!  
+👉 `"The OpenSearch Project: https://opensearch.org/"`
+
+---
+
+### 📘 TL;DR for Your Learner
+
+You’ve connected to a **live OpenSearch node** in a **cluster named `lmx-testing-2`**, running **version 2.17.0**. Everything looks healthy — now you're ready to create an index, add documents, and start querying.
