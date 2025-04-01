@@ -1,26 +1,35 @@
+# Improved Prompt
 role = """
-You are an expert test engineer specializing in SAP tools, with extensive experience in using T codes, Tosca, and manually entering 
-data into SAP. Your role includes interpreting complex material data sets (from sources such as Excel, CSV, or JSON) and 
-accurately mapping these values into SAP GUI fields for testing and validation. Please provide a detailed, step-by-step guide and 
-extract the data needed for entry from the spreadsheet that includes the following:
+You are an expert SAP test engineer with deep knowledge of T codes, Tosca, and manual data entry in the SAP GUI. Your job is to analyze provided structured test steps and produce both a high-quality critique and a fully expanded set of detailed instructions that a junior test engineer could follow.
 
-            Manual Data Entry into SAP GUI:
-                Step-by-Step Process:
-                    Outline the steps for manually executing T codes and navigating the SAP GUI.
-                    Provide the data that is to be input into fields, highlighting key input areas with preview examples or screenshots (if applicable).
-                    Ensure the name of the views and tab are correct for each field.
-            Practical Examples and Use Cases:
-                Example Scenario:
-                    Provide an example scenario where a material data set is manually reviewed, processed, and then entered into SAP via specific T codes.
-                    Highlight the steps taken, from data preparation to manual input, and include key points where the test engineer should verify data integrity.
+You will be given a well-formatted JSON array of steps. Each step includes a "Step Number", "Step Description", and "Step Expected Result".
 
-Your response should be structured into two sections a critique and a json. Ensure that the critique is concise, actionable, and accessible to a test engineer who is familiar 
-with SAP but seeking to enhance their manual data entry and validation processes. Also, do not include any preamble. Start directly with critique.
+Your response must contain two parts only:
 
-You will be given a well formated json with Step Numbers, Step Descriptions and Step Expected Results. After *BRIEFLY* critiquing the JSON
-Return a complete json that completely breaks down this simple JSON into detailed, actionable steps, adding steps to the return JSON.
+1. Critique: A brief, clear summary (2-3 sentences max) of how well the input JSON enables accurate SAP manual testing, and what could be improved.
+2. Expanded JSON: A complete and valid JSON array of enhanced test steps, with each step including:
+    - "Step Number" (integer)
+    - "Step Description" (string)
+    - "Step Expected Result" (string)
+    - "Details": an object containing:
+        - "SAP T-code" (string)
+        - "Field Instructions": an object with:
+            - "Field" (string)
+            - "Value" (string)
+    - "Detailed Instructions": an object with:
+        - "Action" (string)
+        - "Field" (string)
+        - "Value" (string)
+
+Wrap only the JSON array in triple backticks using the format:
+```json
+[ ... ]
+```
+
+Do not include any preamble, titles, or explanation outside the required two parts. Only output the critique followed by the JSON array.
 """
 
+# OpenSearch Configuration
 index_name = "ai_string_tests"
 prod_name = "ai_string_tests_prod"
 
@@ -28,121 +37,43 @@ mapping = {
     "settings": {
         "number_of_shards": 5,
         "number_of_replicas": 2,
-        "index.mapping.total_fields.limit": 100000
+        "index.mapping.total_fields.limit": 100000,
+        "mapping": {"dynamic": "strict"}
     },
     "mappings": {
-        "dynamic_templates": [
-            {
-                "strings_as_text": {
-                    "match_mapping_type": "string",
-                    "mapping": {
-                        "type": "text"
-                    }
-                }
+        "dynamic_templates": [{
+            "strings_as_text": {
+                "match_mapping_type": "string",
+                "mapping": {"type": "text"}
             }
-        ],
+        }],
         "properties": {
             "name": {"type": "text"},
             "sheet_name": {"type": "text"},
             "extension": {"type": "text"},
             "creator": {"type": "text"},
             "last_modified_by": {"type": "text"},
-            "title": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 200000
-                    }
-                }
-            },
+            "title": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
             "keywords": {"type": "text"},
-            "step_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": {"type": "long"},
-                    "Step Description": {"type": "text"},
-                    "Step Expected Result": {"type": "text"},
-                    "Details": {
-                        "type": "object",
-                        "properties": {
-                            "Field Instructions": {
-                                "type": "object",
-                                "properties": {
-                                    "Field": {"type": "text"},
-                                    "Value": {"type": "text"}
-                                }
-                            },
-                            "SAP T-code": {"type": "text"}
-                        }
-                    },
-                    "Detailed Instructions": {
-                        "type": "object",
-                        "properties": {
-                            "Action": {"type": "text"},
-                            "Field": {"type": "text"},
-                            "Value": {"type": "text"}
-                        }
-                    }
-                }
-            },
+            "step_json": {"type": "nested", "properties": {"Step Number": {"type": "long"}}},
             "path": {"type": "text"},
             "created": {"type": "date", "format": "yyyy-MM-dd"},
             "modified": {"type": "date", "format": "yyyy-MM-dd"},
-            "ai_text": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 200000
-                    }
-                }
-            },
-            "ai_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": {"type": "long"},
-                    "Step Description": {"type": "text"},
-                    "Step Expected Result": {"type": "text"},
-                    "Details": {
-                        "type": "object",
-                        "properties": {
-                            "Field Instructions": {
-                                "type": "object",
-                                "properties": {
-                                    "Field": {"type": "text"},
-                                    "Value": {"type": "text"}
-                                }
-                            },
-                            "SAP T-code": {"type": "text"}
-                        }
-                    },
-                    "Detailed Instructions": {
-                        "type": "object",
-                        "properties": {
-                            "Action": {"type": "text"},
-                            "Field": {"type": "text"},
-                            "Value": {"type": "text"}
-                        }
-                    }
-                }
-            },
+            "ai_text": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+            "ai_json": {"type": "nested", "properties": {"Step Number": {"type": "long"}}},
             "information": {"type": "text"},
             "other": {"type": "text"},
             "clarity_sequence": {"type": "long"},
             "accuracy": {"type": "long"},            
             "actionability": {"type": "long"},
             "scores": {"type": "long"},
-            "ai_upate": {"type": "date", "format": "yyyy-MM-dd"},
+            "ai_update": {"type": "date", "format": "yyyy-MM-dd"},
         }
     }
 }
 
-client = os_client 
-
+# Initialize indices
 for index in [index_name, prod_name]:
-    client.indices.delete(index=index, ignore=[400,404])
-
+    client.indices.delete(index=index, ignore=[400, 404])
     if not client.indices.exists(index=index):
-        response = client.indices.create(index=index, 
-                                         body=mapping)
+        client.indices.create(index=index, body=mapping)
