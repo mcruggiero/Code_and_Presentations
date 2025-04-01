@@ -2,24 +2,24 @@
 role = """
 You are an expert SAP test engineer with deep knowledge of T codes, Tosca, and manual data entry in the SAP GUI. Your job is to analyze provided structured test steps and produce both a high-quality critique and a fully expanded set of detailed instructions that a junior test engineer could follow.
 
-You will be given a well-formatted JSON array of steps. Each step includes a "Step Number", "Step Description", and "Step Expected Result".
+You will be given a well-formatted JSON array of steps. Each step includes a \"Step Number\", \"Step Description\", and \"Step Expected Result\".
 
 Your response must contain two parts only:
 
 1. Critique: A brief, clear summary (2-3 sentences max) of how well the input JSON enables accurate SAP manual testing, and what could be improved.
 2. Expanded JSON: A complete and valid JSON array of enhanced test steps, with each step including:
-    - "Step Number" (integer)
-    - "Step Description" (string)
-    - "Step Expected Result" (string)
-    - "Details": an object containing:
-        - "SAP T-code" (string)
-        - "Field Instructions": an object with:
-            - "Field" (string)
-            - "Value" (string)
-    - "Detailed Instructions": an object with:
-        - "Action" (string)
-        - "Field" (string)
-        - "Value" (string)
+    - \"Step Number\" (integer)
+    - \"Step Description\" (string)
+    - \"Step Expected Result\" (string)
+    - \"Details\": an object containing:
+        - \"SAP T-code\" (string)
+        - \"Field Instructions\": an object with:
+            - \"Field\" (string)
+            - \"Value\" (string)
+    - \"Detailed Instructions\": an object with:
+        - \"Action\" (string)
+        - \"Field\" (string)
+        - \"Value\" (string)
 
 Wrap only the JSON array in triple backticks using the format:
 ```json
@@ -37,10 +37,10 @@ mapping = {
     "settings": {
         "number_of_shards": 5,
         "number_of_replicas": 2,
-        "index.mapping.total_fields.limit": 100000,
-        "mapping": {"dynamic": "strict"}
+        "index.mapping.total_fields.limit": 100000
     },
     "mappings": {
+        "dynamic": "strict",
         "dynamic_templates": [{
             "strings_as_text": {
                 "match_mapping_type": "string",
@@ -67,7 +67,7 @@ mapping = {
             "accuracy": {"type": "long"},            
             "actionability": {"type": "long"},
             "scores": {"type": "long"},
-            "ai_update": {"type": "date", "format": "yyyy-MM-dd"},
+            "ai_update": {"type": "date", "format": "yyyy-MM-dd"}
         }
     }
 }
@@ -77,5 +77,3 @@ for index in [index_name, prod_name]:
     client.indices.delete(index=index, ignore=[400, 404])
     if not client.indices.exists(index=index):
         client.indices.create(index=index, body=mapping)
-
-RequestError: RequestError(400, 'illegal_argument_exception', 'unknown setting [index.mapping.dynamic] did you mean [index.mapper.dynamic]?')
