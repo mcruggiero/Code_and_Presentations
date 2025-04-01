@@ -1,38 +1,3 @@
-# Improved Prompt
-role = """
-You are an expert SAP test engineer with deep knowledge of T codes, Tosca, and manual data entry in the SAP GUI. Your job is to analyze provided structured test steps and produce both a high-quality critique and a fully expanded set of detailed instructions that a junior test engineer could follow.
-
-You will be given a well-formatted JSON array of steps. Each step includes a \"Step Number\", \"Step Description\", and \"Step Expected Result\".
-
-Your response must contain two parts only:
-
-1. Critique: A brief, clear summary (2-3 sentences max) of how well the input JSON enables accurate SAP manual testing, and what could be improved.
-2. Expanded JSON: A complete and valid JSON array of enhanced test steps, with each step including:
-    - \"Step Number\" (integer)
-    - \"Step Description\" (string)
-    - \"Step Expected Result\" (string)
-    - \"Details\": an object containing:
-        - \"SAP T-code\" (string)
-        - \"Field Instructions\": an object with:
-            - \"Field\" (string)
-            - \"Value\" (string)
-    - \"Detailed Instructions\": an object with:
-        - \"Action\" (string)
-        - \"Field\" (string)
-        - \"Value\" (string)
-
-Wrap only the JSON array in triple backticks using the format:
-```json
-[ ... ]
-```
-
-Do not include any preamble, titles, or explanation outside the required two parts. Only output the critique followed by the JSON array.
-"""
-
-# OpenSearch Configuration
-index_name = "ai_string_tests"
-prod_name = "ai_string_tests_prod"
-
 mapping = {
     "settings": {
         "number_of_shards": 5,
@@ -40,7 +5,6 @@ mapping = {
         "index.mapping.total_fields.limit": 100000
     },
     "mappings": {
-        "dynamic": "strict",
         "dynamic_templates": [
             {
                 "strings_as_text": {
@@ -68,11 +32,9 @@ mapping = {
                     "Step Expected Result": {"type": "text"},
                     "Details": {
                         "type": "object",
-                        "dynamic": "strict",
                         "properties": {
                             "Field Instructions": {
                                 "type": "object",
-                                "dynamic": "strict",
                                 "properties": {
                                     "Field": {"type": "text"},
                                     "Value": {"type": "text"}
@@ -83,7 +45,6 @@ mapping = {
                     },
                     "Detailed Instructions": {
                         "type": "object",
-                        "dynamic": "strict",
                         "properties": {
                             "Action": {"type": "text"},
                             "Field": {"type": "text"},
@@ -107,11 +68,9 @@ mapping = {
                     "Step Expected Result": {"type": "text"},
                     "Details": {
                         "type": "object",
-                        "dynamic": "strict",
                         "properties": {
                             "Field Instructions": {
                                 "type": "object",
-                                "dynamic": "strict",
                                 "properties": {
                                     "Field": {"type": "text"},
                                     "Value": {"type": "text"}
@@ -122,7 +81,6 @@ mapping = {
                     },
                     "Detailed Instructions": {
                         "type": "object",
-                        "dynamic": "strict",
                         "properties": {
                             "Action": {"type": "text"},
                             "Field": {"type": "text"},
@@ -141,87 +99,3 @@ mapping = {
         }
     }
 }
-
-pattern = r'```json\s(.*?)```'
-time_format = '%Y-%m-%d'
-
-key = 8
-value = just_sheets[key]
-
-client = os_client
-
-# Initialize indices
-for index in [index_name, prod_name]:
-    client.indices.delete(index=index, ignore=[400, 404])
-    if not client.indices.exists(index=index):
-        client.indices.create(index=index, body=mapping)
-
-mapping = client.indices.get_mapping(index="ai_string_tests")
-
-print(mapping)
-
-def sanitize_input_steps(step_json):
-    sanitized_steps = []
-
-    if isinstance(step_json, dict):
-        # Handle dict-like {"0": {...}, "1": {...}}
-        step_json = step_json.values()
-    elif not isinstance(step_json, list):
-        raise ValueError("step_json must be a list or dictionary of steps")
-
-    for step in step_json:
-        if not isinstance(step, dict):
-            continue  # skip invalid items
-        sanitized_steps.append({
-            "Step Number": int(step.get("Step Number", 0)),
-            "Step Description": step.get("Step Description", "").strip(),
-            "Step Expected Result": step.get("Step Expected Result", "").strip(),
-            "Details": {
-                "SAP T-code": step.get("Details", {}).get("SAP T-code", "TBD"),
-                "Field Instructions": {
-                    "Field": step.get("Details", {}).get("Field Instructions", {}).get("Field", "TBD"),
-                    "Value": step.get("Details", {}).get("Field Instructions", {}).get("Value", "TBD")
-                }
-            },
-            "Detailed Instructions": {
-                "Action": step.get("Detailed Instructions", {}).get("Action", "TBD"),
-                "Field": step.get("Detailed Instructions", {}).get("Field", "TBD"),
-                "Value": step.get("Detailed Instructions", {}).get("Value", "TBD")
-            }
-        })
-    return sanitized_steps
-
-# I want to make sure to clear out all of the references
-line_entry = copy.deepcopy(value)
-
-# Sanitize step_json before indexing
-line_entry["step_json"] = sanitize_input_steps(value["step_json"])
-
-completion = ai_client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {"role": "system", "content": role},
-        {"role": "user", "content": json.dumps(line_entry["step_json"])}
-    ]
-)
-
-# Generate AI text
-ai_text = completion.choices[0].message.content
-line_entry["ai_text"] = ai_text
-
-match = re.search(pattern, ai_text, re.DOTALL)
-if not match:
-    raise ValueError("GPT response did not contain valid JSON block.")
-
-ai_json_raw = json.loads(match.group(1))
-line_entry["ai_json"] = sanitize_input_steps(ai_json_raw)
-
-# Send this sanitized text to ES
-client.index(index=index_name, id=key, body=line_entry)
-
-print(f'{key} successfully loaded to ES\n')
-
-just_sheets[key] = line_entry
-
-with open('ai_3.pkl', 'wb') as file:
-    pickle.dump(just_sheets, file)
