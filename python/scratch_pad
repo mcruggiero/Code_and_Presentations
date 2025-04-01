@@ -1,13 +1,16 @@
-query = {
-    "query": {
-        "term": {
-            "ai_text.keyword": {
-                "value": "Test String"
-            }
-        }
-    }
-}
-
-response = client.search(index="ai_string_tests", body=query)
-for hit in response["hits"]["hits"]:
-    print(hit["_source"])
+{'ai_string_tests': {'mappings': {'properties': {'ai_json': {'type': 'nested'},
+    'ai_text': {'type': 'text',
+     'fields': {'keyword': {'type': 'keyword', 'ignore_above': 200000}}},
+    'created': {'type': 'date', 'format': 'yyyy-MM-dd'},
+    'creator': {'type': 'text'},
+    'extension': {'type': 'text'},
+    'information': {'type': 'text'},
+    'keywords': {'type': 'text'},
+    'last_modified_by': {'type': 'text'},
+    'modified': {'type': 'date', 'format': 'yyyy-MM-dd'},
+    'name': {'type': 'text'},
+    'other': {'type': 'text'},
+    'path': {'type': 'text'},
+    'sheet_name': {'type': 'text'},
+    'step_json': {'type': 'nested'},
+    'title': {'type': 'text'}}}}}
