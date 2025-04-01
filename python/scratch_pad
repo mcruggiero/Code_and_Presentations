@@ -1,79 +1,47 @@
-# Improved Prompt
-role = """
-You are an expert SAP test engineer with deep knowledge of T codes, Tosca, and manual data entry in the SAP GUI. Your job is to analyze provided structured test steps and produce both a high-quality critique and a fully expanded set of detailed instructions that a junior test engineer could follow.
+pattern = r'```json\s(.*?)```'
+time_format = '%Y-%m-%d'
 
-You will be given a well-formatted JSON array of steps. Each step includes a \"Step Number\", \"Step Description\", and \"Step Expected Result\".
+passes = 0
+run = 0
 
-Your response must contain two parts only:
+while passes < 10: #tries > 0:
+    for key, value in just_sheets.items():
 
-1. Critique: A brief, clear summary (2-3 sentences max) of how well the input JSON enables accurate SAP manual testing, and what could be improved.
-2. Expanded JSON: A complete and valid JSON array of enhanced test steps, with each step including:
-    - \"Step Number\" (integer)
-    - \"Step Description\" (string)
-    - \"Step Expected Result\" (string)
-    - \"Details\": an object containing:
-        - \"SAP T-code\" (string)
-        - \"Field Instructions\": an object with:
-            - \"Field\" (string)
-            - \"Value\" (string)
-    - \"Detailed Instructions\": an object with:
-        - \"Action\" (string)
-        - \"Field\" (string)
-        - \"Value\" (string)
+        print(passes, key)
+        if "ai_json" not in value:
+            try:
 
-Wrap only the JSON array in triple backticks using the format:
-```json
-[ ... ]
-```
+                # I want to make sure to clear out all of the references
+                line_entry = copy.deepcopy(value)
 
-Do not include any preamble, titles, or explanation outside the required two parts. Only output the critique followed by the JSON array.
-"""
+                completion = ai_client.chat.completions.create(
+                  model="gpt-4o",
+                  messages=[
+                    {"role": "system", "content": role},
+                    {"role": "user", "content": f'{value["step_json"]}'}
+                  ]
+                )
+                
+                # Jared's Stuff
 
-# OpenSearch Configuration
-index_name = "ai_string_tests"
-prod_name = "ai_string_tests_prod"
+                # Generate AI text
+                line_entry["ai_text"]= ai_text = completion.choices[0].message.content
+                match = re.search(pattern, ai_text, re.DOTALL).group(1)
+                line_entry["ai_json"] = json.loads(match)
 
-mapping = {
-    "settings": {
-        "number_of_shards": 5,
-        "number_of_replicas": 2,
-        "index.mapping.total_fields.limit": 100000
-    },
-    "mappings": {
-        "dynamic": "strict",
-        "dynamic_templates": [{
-            "strings_as_text": {
-                "match_mapping_type": "string",
-                "mapping": {"type": "text"}
-            }
-        }],
-        "properties": {
-            "name": {"type": "text"},
-            "sheet_name": {"type": "text"},
-            "extension": {"type": "text"},
-            "creator": {"type": "text"},
-            "last_modified_by": {"type": "text"},
-            "title": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
-            "keywords": {"type": "text"},
-            "step_json": {"type": "nested", "properties": {"Step Number": {"type": "long"}}},
-            "path": {"type": "text"},
-            "created": {"type": "date", "format": "yyyy-MM-dd"},
-            "modified": {"type": "date", "format": "yyyy-MM-dd"},
-            "ai_text": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
-            "ai_json": {"type": "nested", "properties": {"Step Number": {"type": "long"}}},
-            "information": {"type": "text"},
-            "other": {"type": "text"},
-            "clarity_sequence": {"type": "long"},
-            "accuracy": {"type": "long"},            
-            "actionability": {"type": "long"},
-            "scores": {"type": "long"},
-            "ai_update": {"type": "date", "format": "yyyy-MM-dd"}
-        }
-    }
-}
+                # Send this text to ES
+                client.index(index=index_name, id=key, body=line_entry)
 
-# Initialize indices
-for index in [index_name, prod_name]:
-    client.indices.delete(index=index, ignore=[400, 404])
-    if not client.indices.exists(index=index):
-        client.indices.create(index=index, body=mapping)
+                print(f'{key} successfully loaded to ES\n')
+                time.sleep(1)
+
+                just_sheets[key] = line_entry
+
+                with open('ai_3.pkl', 'wb') as file:
+                    pickle.dump(just_sheets, file)
+            
+            except Exception as e:   
+                print(e)
+                pass
+    
+    passes += 1
