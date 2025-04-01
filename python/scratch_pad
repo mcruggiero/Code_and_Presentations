@@ -1,108 +1,66 @@
-mapping = {
-    "settings": {
-        "number_of_shards": 5,
-        "number_of_replicas": 2,
-        "index.mapping.total_fields.limit": 100000
-    },
-    "mappings": {
-        "dynamic_templates": [
-            {
-                "strings_as_text": {
-                    "match_mapping_type": "string",
-                    "mapping": {
-                        "type": "text"
-                    }
-                }
-            }
-        ],
-        "properties": {
-            "name": {"type": "text"},
-            "sheet_name": {"type": "text"},
-            "extension": {"type": "text"},
-            "creator": {"type": "text"},
-            "last_modified_by": {"type": "text"},
-            "title": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 200000
-                    }
-                }
-            },
-            "keywords": {"type": "text"},
-            "step_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": {"type": "long"},
-                    "Step Description": {"type": "text"},
-                    "Step Expected Result": {"type": "text"},
-                    "Details": {
-                        "type": "object",
-                        "properties": {
-                            "Field Instructions": {
-                                "type": "object",
-                                "properties": {
-                                    "Field": {"type": "text"},
-                                    "Value": {"type": "text"}
-                                }
-                            },
-                            "SAP T-code": {"type": "text"}
-                        }
-                    },
-                    "Detailed Instructions": {
-                        "type": "object",
-                        "properties": {
-                            "Action": {"type": "text"},
-                            "Field": {"type": "text"},
-                            "Value": {"type": "text"}
-                        }
-                    }
-                }
-            },
-            "path": {"type": "text"},
-            "created": {"type": "date", "format": "yyyy-MM-dd"},
-            "modified": {"type": "date", "format": "yyyy-MM-dd"},
-            "ai_text": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 200000
-                    }
-                }
-            },
-            "ai_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": {"type": "long"},
-                    "Step Description": {"type": "text"},
-                    "Step Expected Result": {"type": "text"},
-                    "Details": {
-                        "type": "object",
-                        "properties": {
-                            "Field Instructions": {
-                                "type": "object",
-                                "properties": {
-                                    "Field": {"type": "text"},
-                                    "Value": {"type": "text"}
-                                }
-                            },
-                            "SAP T-code": {"type": "text"}
-                        }
-                    },
-                    "Detailed Instructions": {
-                        "type": "object",
-                        "properties": {
-                            "Action": {"type": "text"},
-                            "Field": {"type": "text"},
-                            "Value": {"type": "text"}
-                        }
-                    }
-                }
-            },
-            "information": {"type": "text"},
-            "other": {"type": "text"}
-        }
-    }
-}
+pattern = r'```json\s(.*?)```'
+time_format = '%Y-%m-%d'
+
+passes = 0
+run = 0
+
+while passes < 10: #tries > 0:
+    for key, value in just_sheets.items():
+
+        print(passes, key)
+        if "ai_json" not in value:
+            try:
+
+                # I want to make sure to clear out all of the references
+                line_entry = copy.deepcopy(value)
+
+                completion = ai_client.chat.completions.create(
+                  model="gpt-4o",
+                  messages=[
+                    {"role": "system", "content": role},
+                    {"role": "user", "content": f'{value["step_json"]}'}
+                  ]
+                )
+            
+                # Generate AI text
+                line_entry["ai_text"]= ai_text = completion.choices[0].message.content
+                match = re.search(pattern, ai_text, re.DOTALL).group(1)
+                line_entry["ai_json"] = json.loads(match)
+
+                # Send this text to ES
+                client.index(index=index_name, id=key, body=line_entry)
+
+                print(f'{key} successfully loaded to ES\n')
+                time.sleep(1)
+
+                just_sheets[key] = line_entry
+
+                with open('ai_3.pkl', 'wb') as file:
+                    pickle.dump(just_sheets, file)
+            
+            except Exception as e:   
+                print(e)
+                pass
+    
+    passes += 1
+
+===
+
+0 79
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '79'. Preview of field's value: ' '")
+0 80
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '80'. Preview of field's value: ' '")
+0 81
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '81'. Preview of field's value: ' '")
+0 82
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '82'. Preview of field's value: ' '")
+0 83
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '83'. Preview of field's value: ' '")
+0 84
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '84'. Preview of field's value: ' '")
+0 85
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '85'. Preview of field's value: ' '")
+0 86
+RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '86'. Preview of field's value: ' '")
+0 87
+87 successfully loaded to ES
