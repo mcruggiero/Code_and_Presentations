@@ -1,64 +1,101 @@
-Good Morning All! Here is my game plan for 03/24 - 03/27:
-
-
-
-(1) Architecture - Get a persistent ES cluster up for Test Refinery.
-
-
-
-Since we don't have a ton of data to store, it seems like we should aim for a 3 node high availability cluster. I looked up some URLs from my notes, but I have never set up a cluster here at LM, only for personal projects. If you need some help, please set me up with Admin privileges and I will lend a hand. Do we think we can get this done by EOB Tuesday?
-
-https://opster.com/guides/elasticsearch/operations/elasticsearch-cluster-setup/
-https://www.howtoforge.com/how-to-setup-elasticsearch-cluster-with-3-nodes-on-ubuntu/
-https://logz.io/blog/elasticsearch-cluster-tutorial/
-https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster.html
-https://www.youtube.com/watch?v=XyQ4AN1Jn78
-
-
-
-(2) Code Development - Fix AI Transpose Error
-
-
-
-I don't know if you guys noticed, but occasionally the AI formats the JSON improperly along the columns and not the rows, I need to write a little transpose check for this. 
-
-
-
-(3) Data Science - AI Prompting Analysis 
-
-
-
-⁠
-
-Brewer,
-
- 
-
-Jared
-
- 
-
-A
-
- 
-
-(US)
-
- Let's find time to tag up to talk through some of the prompting that you explored. We should run some of the most effective prompts we ran and test to see which consistently produces the best results. If you can, could you put together a little notebook to show me some of the prompts you explored? 
-
-
-
-(4) Architecture - Data Container
-
-
-
-Using Chmod for the /data folder is inelegant and presents security concerns. In our deployment, we should have a persistent data container. Here are some links to help out, let me know if you need a hand ⁠
-
-Grinning face with smiling eyes
-
-.
-
-
-
-https://kubernetes.io/docs/concepts/storage/persistent-volumes/​https://kubernetes.io/docs/concepts/storage/volumes/​https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/​
-https://portworx.com/tutorial-kubernetes-persistent-volumes/
+mapping = {
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 2,
+        "index.mapping.total_fields.limit": 100000
+    },
+    "mappings": {
+        "dynamic_templates": [
+            {
+                "strings_as_text": {
+                    "match_mapping_type": "string",
+                    "mapping": {"type": "text"}
+                }
+            }
+        ],
+        "properties": {
+            "name": {"type": "text"},
+            "sheet_name": {"type": "text"},
+            "extension": {"type": "text"},
+            "creator": {"type": "text"},
+            "last_modified_by": {"type": "text"},
+            "title": {
+                "type": "text",
+                "fields": {"keyword": {"type": "keyword", "ignore_above": 200000}}
+            },
+            "keywords": {"type": "text"},
+            "step_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": {"type": "long"},
+                    "Step Description": {"type": "text"},
+                    "Step Expected Result": {"type": "text"},
+                    "Details": {
+                        "type": "object",
+                        "properties": {
+                            "Field Instructions": {
+                                "type": "object",
+                                "properties": {
+                                    "Field": {"type": "text"},
+                                    "Value": {"type": "text"}
+                                }
+                            },
+                            "SAP T-code": {"type": "text"}
+                        }
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "properties": {
+                            "Action": {"type": "text"},
+                            "Field": {"type": "text"},
+                            "Value": {"type": "text"}
+                        }
+                    }
+                }
+            },
+            "path": {"type": "text"},
+            "created": {"type": "date", "format": "yyyy-MM-dd"},
+            "modified": {"type": "date", "format": "yyyy-MM-dd"},
+            "ai_text": {
+                "type": "text",
+                "fields": {"keyword": {"type": "keyword", "ignore_above": 200000}}
+            },
+            "ai_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": {"type": "long"},
+                    "Step Description": {"type": "text"},
+                    "Step Expected Result": {"type": "text"},
+                    "Details": {
+                        "type": "object",
+                        "properties": {
+                            "Field Instructions": {
+                                "type": "object",
+                                "properties": {
+                                    "Field": {"type": "text"},
+                                    "Value": {"type": "text"}
+                                }
+                            },
+                            "SAP T-code": {"type": "text"}
+                        }
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "properties": {
+                            "Action": {"type": "text"},
+                            "Field": {"type": "text"},
+                            "Value": {"type": "text"}
+                        }
+                    }
+                }
+            },
+            "information": {"type": "text"},
+            "other": {"type": "text"},
+            "clarity_sequence": {"type": "long"},
+            "accuracy": {"type": "long"},            
+            "actionability": {"type": "long"},
+            "scores": {"type": "long"},
+            "ai_update": {"type": "date", "format": "yyyy-MM-dd"}
+        }
+    }
+}
