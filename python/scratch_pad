@@ -1,101 +1,596 @@
-mapping = {
-    "settings": {
-        "number_of_shards": 5,
-        "number_of_replicas": 2,
-        "index.mapping.total_fields.limit": 100000
-    },
-    "mappings": {
-        "dynamic_templates": [
-            {
-                "strings_as_text": {
-                    "match_mapping_type": "string",
-                    "mapping": {"type": "text"}
-                }
-            }
-        ],
-        "properties": {
-            "name": {"type": "text"},
-            "sheet_name": {"type": "text"},
-            "extension": {"type": "text"},
-            "creator": {"type": "text"},
-            "last_modified_by": {"type": "text"},
-            "title": {
-                "type": "text",
-                "fields": {"keyword": {"type": "keyword", "ignore_above": 200000}}
-            },
-            "keywords": {"type": "text"},
-            "step_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": {"type": "long"},
-                    "Step Description": {"type": "text"},
-                    "Step Expected Result": {"type": "text"},
-                    "Details": {
-                        "type": "object",
-                        "properties": {
-                            "Field Instructions": {
-                                "type": "object",
-                                "properties": {
-                                    "Field": {"type": "text"},
-                                    "Value": {"type": "text"}
-                                }
-                            },
-                            "SAP T-code": {"type": "text"}
-                        }
-                    },
-                    "Detailed Instructions": {
-                        "type": "object",
-                        "properties": {
-                            "Action": {"type": "text"},
-                            "Field": {"type": "text"},
-                            "Value": {"type": "text"}
-                        }
-                    }
-                }
-            },
-            "path": {"type": "text"},
-            "created": {"type": "date", "format": "yyyy-MM-dd"},
-            "modified": {"type": "date", "format": "yyyy-MM-dd"},
-            "ai_text": {
-                "type": "text",
-                "fields": {"keyword": {"type": "keyword", "ignore_above": 200000}}
-            },
-            "ai_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": {"type": "long"},
-                    "Step Description": {"type": "text"},
-                    "Step Expected Result": {"type": "text"},
-                    "Details": {
-                        "type": "object",
-                        "properties": {
-                            "Field Instructions": {
-                                "type": "object",
-                                "properties": {
-                                    "Field": {"type": "text"},
-                                    "Value": {"type": "text"}
-                                }
-                            },
-                            "SAP T-code": {"type": "text"}
-                        }
-                    },
-                    "Detailed Instructions": {
-                        "type": "object",
-                        "properties": {
-                            "Action": {"type": "text"},
-                            "Field": {"type": "text"},
-                            "Value": {"type": "text"}
-                        }
-                    }
-                }
-            },
-            "information": {"type": "text"},
-            "other": {"type": "text"},
-            "clarity_sequence": {"type": "long"},
-            "accuracy": {"type": "long"},            
-            "actionability": {"type": "long"},
-            "scores": {"type": "long"},
-            "ai_update": {"type": "date", "format": "yyyy-MM-dd"}
-        }
-    }
-}
+Attempt 1 for key 79 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '79'. Preview of field's value: ' '")
+Attempt 2 for key 79 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '79'. Preview of field's value: ' '")
+Attempt 3 for key 79 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '79'. Preview of field's value: ' '")
+Failed to process key 79 after 3 attempts. Skipping.
+Pass 0, Processing Key: 80
+Attempt 1 for key 80 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '80'. Preview of field's value: ' '")
+Attempt 2 for key 80 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '80'. Preview of field's value: ' '")
+Attempt 3 for key 80 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '80'. Preview of field's value: ' '")
+Failed to process key 80 after 3 attempts. Skipping.
+Pass 0, Processing Key: 81
+Attempt 1 for key 81 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '81'. Preview of field's value: ' '")
+Attempt 2 for key 81 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '81'. Preview of field's value: ' '")
+Attempt 3 for key 81 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '81'. Preview of field's value: ' '")
+Failed to process key 81 after 3 attempts. Skipping.
+Pass 0, Processing Key: 82
+Attempt 1 for key 82 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '82'. Preview of field's value: ' '")
+Attempt 2 for key 82 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '82'. Preview of field's value: ' '")
+Attempt 3 for key 82 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '82'. Preview of field's value: ' '")
+Failed to process key 82 after 3 attempts. Skipping.
+Pass 0, Processing Key: 83
+Attempt 1 for key 83 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '83'. Preview of field's value: ' '")
+Attempt 2 for key 83 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '83'. Preview of field's value: ' '")
+Attempt 3 for key 83 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '83'. Preview of field's value: ' '")
+Failed to process key 83 after 3 attempts. Skipping.
+Pass 0, Processing Key: 84
+Attempt 1 for key 84 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '84'. Preview of field's value: ' '")
+Attempt 2 for key 84 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '84'. Preview of field's value: ' '")
+Attempt 3 for key 84 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '84'. Preview of field's value: ' '")
+Failed to process key 84 after 3 attempts. Skipping.
+Pass 0, Processing Key: 85
+Attempt 1 for key 85 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '85'. Preview of field's value: ' '")
+Attempt 2 for key 85 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '85'. Preview of field's value: ' '")
+Attempt 3 for key 85 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '85'. Preview of field's value: ' '")
+Failed to process key 85 after 3 attempts. Skipping.
+Pass 0, Processing Key: 86
+Attempt 1 for key 86 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '86'. Preview of field's value: ' '")
+Attempt 2 for key 86 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '86'. Preview of field's value: ' '")
+Attempt 3 for key 86 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.11.Step Number] of type [long] in document with id '86'. Preview of field's value: ' '")
+Failed to process key 86 after 3 attempts. Skipping.
+Pass 0, Processing Key: 87
+Pass 0, Processing Key: 88
+Pass 0, Processing Key: 89
+Pass 0, Processing Key: 90
+Attempt 1 for key 90 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.0.Step Number] of type [long] in document with id '90'. Preview of field's value: ' '")
+Attempt 2 for key 90 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.0.Step Number] of type [long] in document with id '90'. Preview of field's value: ' '")
+Attempt 3 for key 90 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.0.Step Number] of type [long] in document with id '90'. Preview of field's value: ' '")
+Failed to process key 90 after 3 attempts. Skipping.
+Pass 0, Processing Key: 91
+Pass 0, Processing Key: 92
+Pass 0, Processing Key: 93
+Pass 0, Processing Key: 94
+Pass 0, Processing Key: 95
+Pass 0, Processing Key: 96
+Pass 0, Processing Key: 97
+Pass 0, Processing Key: 98
+Pass 0, Processing Key: 99
+Pass 0, Processing Key: 100
+Pass 0, Processing Key: 101
+Pass 0, Processing Key: 102
+Pass 0, Processing Key: 103
+Pass 0, Processing Key: 104
+Pass 0, Processing Key: 105
+Pass 0, Processing Key: 106
+Pass 0, Processing Key: 107
+Pass 0, Processing Key: 108
+Pass 0, Processing Key: 109
+Pass 0, Processing Key: 110
+Pass 0, Processing Key: 111
+Pass 0, Processing Key: 112
+Pass 0, Processing Key: 113
+Pass 0, Processing Key: 114
+Pass 0, Processing Key: 115
+Pass 0, Processing Key: 116
+Pass 0, Processing Key: 117
+Pass 0, Processing Key: 118
+Pass 0, Processing Key: 119
+Pass 0, Processing Key: 120
+Pass 0, Processing Key: 121
+Pass 0, Processing Key: 122
+Pass 0, Processing Key: 123
+Pass 0, Processing Key: 124
+Pass 0, Processing Key: 125
+Pass 0, Processing Key: 126
+Pass 0, Processing Key: 127
+Pass 0, Processing Key: 128
+Pass 0, Processing Key: 129
+Pass 0, Processing Key: 130
+Pass 0, Processing Key: 131
+Pass 0, Processing Key: 132
+Pass 0, Processing Key: 133
+Pass 0, Processing Key: 134
+Pass 0, Processing Key: 135
+Pass 0, Processing Key: 136
+Pass 0, Processing Key: 137
+Pass 0, Processing Key: 138
+Pass 0, Processing Key: 139
+Pass 0, Processing Key: 140
+Pass 0, Processing Key: 141
+Pass 0, Processing Key: 142
+Pass 0, Processing Key: 143
+Pass 0, Processing Key: 144
+Pass 0, Processing Key: 145
+Pass 0, Processing Key: 146
+Pass 0, Processing Key: 147
+Pass 0, Processing Key: 148
+Pass 0, Processing Key: 149
+Pass 0, Processing Key: 150
+Pass 0, Processing Key: 151
+Pass 0, Processing Key: 152
+Pass 0, Processing Key: 153
+Pass 0, Processing Key: 154
+Pass 0, Processing Key: 155
+Pass 0, Processing Key: 156
+Pass 0, Processing Key: 157
+Pass 0, Processing Key: 158
+Pass 0, Processing Key: 159
+Pass 0, Processing Key: 160
+Pass 0, Processing Key: 161
+Pass 0, Processing Key: 162
+Pass 0, Processing Key: 163
+Pass 0, Processing Key: 164
+Pass 0, Processing Key: 165
+Pass 0, Processing Key: 166
+Pass 0, Processing Key: 167
+Pass 0, Processing Key: 168
+Pass 0, Processing Key: 169
+Pass 0, Processing Key: 170
+Pass 0, Processing Key: 171
+Pass 0, Processing Key: 172
+Pass 0, Processing Key: 173
+Pass 0, Processing Key: 174
+Pass 0, Processing Key: 175
+Pass 0, Processing Key: 176
+Pass 0, Processing Key: 177
+Pass 0, Processing Key: 178
+Pass 0, Processing Key: 179
+Pass 0, Processing Key: 180
+Pass 0, Processing Key: 181
+Pass 0, Processing Key: 182
+Pass 0, Processing Key: 183
+Pass 0, Processing Key: 184
+Pass 0, Processing Key: 185
+Pass 0, Processing Key: 186
+Pass 0, Processing Key: 187
+Pass 0, Processing Key: 188
+Pass 0, Processing Key: 189
+Pass 0, Processing Key: 190
+Pass 0, Processing Key: 191
+Pass 0, Processing Key: 192
+Pass 0, Processing Key: 193
+Pass 0, Processing Key: 194
+Pass 0, Processing Key: 195
+Pass 0, Processing Key: 196
+Pass 0, Processing Key: 197
+Pass 0, Processing Key: 198
+Pass 0, Processing Key: 199
+Pass 0, Processing Key: 200
+Pass 0, Processing Key: 201
+Pass 0, Processing Key: 202
+Pass 0, Processing Key: 203
+Pass 0, Processing Key: 204
+Pass 0, Processing Key: 205
+Pass 0, Processing Key: 206
+Pass 0, Processing Key: 207
+Pass 0, Processing Key: 208
+Pass 0, Processing Key: 209
+Pass 0, Processing Key: 210
+Pass 0, Processing Key: 211
+Pass 0, Processing Key: 212
+Pass 0, Processing Key: 213
+Pass 0, Processing Key: 214
+Pass 0, Processing Key: 215
+Pass 0, Processing Key: 216
+Pass 0, Processing Key: 217
+Pass 0, Processing Key: 218
+Pass 0, Processing Key: 219
+Pass 0, Processing Key: 220
+Pass 0, Processing Key: 221
+Pass 0, Processing Key: 222
+Pass 0, Processing Key: 223
+Pass 0, Processing Key: 224
+Pass 0, Processing Key: 225
+Pass 0, Processing Key: 226
+Pass 0, Processing Key: 227
+Pass 0, Processing Key: 228
+Pass 0, Processing Key: 229
+Pass 0, Processing Key: 230
+Pass 0, Processing Key: 231
+Pass 0, Processing Key: 232
+Pass 0, Processing Key: 233
+Pass 0, Processing Key: 234
+Pass 0, Processing Key: 235
+Pass 0, Processing Key: 236
+Pass 0, Processing Key: 237
+Pass 0, Processing Key: 238
+Pass 0, Processing Key: 239
+Pass 0, Processing Key: 240
+Pass 0, Processing Key: 241
+Pass 0, Processing Key: 242
+Pass 0, Processing Key: 243
+Pass 0, Processing Key: 244
+Pass 0, Processing Key: 245
+Pass 0, Processing Key: 246
+Pass 0, Processing Key: 247
+Pass 0, Processing Key: 248
+Pass 0, Processing Key: 249
+Pass 0, Processing Key: 250
+Pass 0, Processing Key: 251
+Pass 0, Processing Key: 252
+Pass 0, Processing Key: 253
+Pass 0, Processing Key: 254
+Pass 0, Processing Key: 255
+Pass 0, Processing Key: 256
+Pass 0, Processing Key: 257
+Pass 0, Processing Key: 258
+Pass 0, Processing Key: 259
+Pass 0, Processing Key: 260
+Pass 0, Processing Key: 261
+Pass 0, Processing Key: 262
+Pass 0, Processing Key: 263
+Pass 0, Processing Key: 264
+Pass 0, Processing Key: 265
+Pass 0, Processing Key: 266
+Pass 0, Processing Key: 267
+Pass 0, Processing Key: 268
+Pass 0, Processing Key: 269
+Pass 0, Processing Key: 270
+Pass 0, Processing Key: 271
+Pass 0, Processing Key: 272
+Pass 0, Processing Key: 273
+Pass 0, Processing Key: 274
+Pass 0, Processing Key: 275
+Pass 0, Processing Key: 276
+Pass 0, Processing Key: 277
+Pass 0, Processing Key: 278
+Pass 0, Processing Key: 279
+Pass 0, Processing Key: 280
+Pass 0, Processing Key: 281
+Pass 0, Processing Key: 282
+Pass 0, Processing Key: 283
+Pass 0, Processing Key: 284
+Pass 0, Processing Key: 285
+Pass 0, Processing Key: 286
+Pass 0, Processing Key: 287
+Pass 0, Processing Key: 288
+Pass 0, Processing Key: 289
+Pass 0, Processing Key: 290
+Pass 0, Processing Key: 291
+Pass 0, Processing Key: 292
+Pass 0, Processing Key: 293
+Pass 0, Processing Key: 294
+Pass 0, Processing Key: 295
+Pass 0, Processing Key: 296
+Pass 0, Processing Key: 297
+Pass 0, Processing Key: 298
+Pass 0, Processing Key: 299
+Pass 0, Processing Key: 300
+Pass 0, Processing Key: 301
+Pass 0, Processing Key: 302
+Pass 0, Processing Key: 303
+Pass 0, Processing Key: 304
+Pass 0, Processing Key: 305
+Pass 0, Processing Key: 306
+Pass 0, Processing Key: 307
+Pass 0, Processing Key: 308
+Pass 0, Processing Key: 309
+Pass 0, Processing Key: 310
+Pass 0, Processing Key: 311
+Pass 0, Processing Key: 312
+Pass 0, Processing Key: 313
+Pass 0, Processing Key: 314
+Pass 0, Processing Key: 315
+Pass 0, Processing Key: 316
+Pass 0, Processing Key: 317
+Pass 0, Processing Key: 318
+Pass 0, Processing Key: 319
+Pass 0, Processing Key: 320
+Pass 0, Processing Key: 321
+Pass 0, Processing Key: 322
+Pass 0, Processing Key: 323
+Pass 0, Processing Key: 324
+Pass 0, Processing Key: 325
+Pass 0, Processing Key: 326
+Pass 0, Processing Key: 327
+Pass 0, Processing Key: 328
+Pass 0, Processing Key: 329
+Pass 0, Processing Key: 330
+Pass 0, Processing Key: 331
+Pass 0, Processing Key: 332
+Pass 0, Processing Key: 333
+Pass 0, Processing Key: 334
+Pass 0, Processing Key: 335
+Pass 0, Processing Key: 336
+Pass 0, Processing Key: 337
+Pass 0, Processing Key: 338
+Pass 0, Processing Key: 339
+Pass 0, Processing Key: 340
+Pass 0, Processing Key: 341
+Pass 0, Processing Key: 342
+Pass 0, Processing Key: 343
+Pass 0, Processing Key: 344
+Pass 0, Processing Key: 345
+Pass 0, Processing Key: 346
+Pass 0, Processing Key: 347
+Pass 0, Processing Key: 348
+Pass 0, Processing Key: 349
+Pass 0, Processing Key: 350
+Pass 0, Processing Key: 351
+Pass 0, Processing Key: 352
+Pass 0, Processing Key: 353
+Pass 0, Processing Key: 354
+Pass 0, Processing Key: 355
+Pass 0, Processing Key: 356
+Pass 0, Processing Key: 357
+Pass 0, Processing Key: 358
+Pass 0, Processing Key: 359
+Pass 0, Processing Key: 360
+Pass 0, Processing Key: 361
+Pass 0, Processing Key: 362
+Pass 0, Processing Key: 363
+Pass 0, Processing Key: 364
+Pass 0, Processing Key: 365
+Pass 0, Processing Key: 366
+Pass 0, Processing Key: 367
+Pass 0, Processing Key: 368
+Pass 0, Processing Key: 369
+Pass 0, Processing Key: 370
+Pass 0, Processing Key: 371
+Pass 0, Processing Key: 372
+Pass 0, Processing Key: 373
+Pass 0, Processing Key: 374
+Pass 0, Processing Key: 375
+Pass 0, Processing Key: 376
+Pass 0, Processing Key: 377
+Pass 0, Processing Key: 378
+Pass 0, Processing Key: 379
+Pass 0, Processing Key: 380
+Pass 0, Processing Key: 381
+Pass 0, Processing Key: 382
+Pass 0, Processing Key: 383
+Pass 0, Processing Key: 384
+Pass 0, Processing Key: 385
+Pass 0, Processing Key: 386
+Pass 0, Processing Key: 387
+Pass 0, Processing Key: 388
+Pass 0, Processing Key: 389
+Pass 0, Processing Key: 390
+Pass 0, Processing Key: 391
+Pass 0, Processing Key: 392
+Pass 0, Processing Key: 393
+Pass 0, Processing Key: 394
+Pass 0, Processing Key: 395
+Pass 0, Processing Key: 396
+Pass 0, Processing Key: 397
+Pass 0, Processing Key: 398
+Pass 0, Processing Key: 399
+Pass 0, Processing Key: 400
+Pass 0, Processing Key: 401
+Pass 0, Processing Key: 402
+Pass 0, Processing Key: 403
+Pass 0, Processing Key: 404
+Pass 0, Processing Key: 405
+Pass 0, Processing Key: 406
+Pass 0, Processing Key: 407
+Pass 0, Processing Key: 408
+Pass 0, Processing Key: 409
+Pass 0, Processing Key: 410
+Pass 0, Processing Key: 411
+Pass 0, Processing Key: 412
+Pass 0, Processing Key: 413
+Pass 0, Processing Key: 414
+Pass 0, Processing Key: 415
+Pass 0, Processing Key: 416
+Pass 0, Processing Key: 417
+Pass 0, Processing Key: 418
+Pass 0, Processing Key: 419
+Pass 0, Processing Key: 420
+Pass 0, Processing Key: 421
+Pass 0, Processing Key: 422
+Pass 0, Processing Key: 423
+Pass 0, Processing Key: 424
+Pass 0, Processing Key: 425
+Pass 0, Processing Key: 426
+Pass 0, Processing Key: 427
+Pass 0, Processing Key: 428
+Pass 0, Processing Key: 429
+Pass 0, Processing Key: 430
+Pass 0, Processing Key: 431
+Pass 0, Processing Key: 432
+Pass 0, Processing Key: 433
+Pass 0, Processing Key: 434
+Pass 0, Processing Key: 435
+Pass 0, Processing Key: 436
+Pass 0, Processing Key: 437
+Pass 0, Processing Key: 438
+Pass 0, Processing Key: 439
+Pass 0, Processing Key: 440
+Pass 0, Processing Key: 441
+Pass 0, Processing Key: 442
+Pass 0, Processing Key: 443
+Pass 0, Processing Key: 444
+Pass 0, Processing Key: 445
+Pass 0, Processing Key: 446
+Pass 0, Processing Key: 447
+Pass 0, Processing Key: 448
+Pass 0, Processing Key: 449
+Pass 0, Processing Key: 450
+Pass 0, Processing Key: 451
+Pass 0, Processing Key: 452
+Pass 0, Processing Key: 453
+Pass 0, Processing Key: 454
+Pass 0, Processing Key: 455
+Pass 0, Processing Key: 456
+Pass 0, Processing Key: 457
+Pass 0, Processing Key: 458
+Pass 0, Processing Key: 459
+Pass 0, Processing Key: 460
+Pass 0, Processing Key: 461
+Pass 0, Processing Key: 462
+Pass 0, Processing Key: 463
+Pass 0, Processing Key: 464
+Pass 0, Processing Key: 465
+Pass 0, Processing Key: 466
+Pass 0, Processing Key: 467
+Pass 0, Processing Key: 468
+Pass 0, Processing Key: 469
+Pass 0, Processing Key: 470
+Pass 0, Processing Key: 471
+Pass 0, Processing Key: 472
+Pass 0, Processing Key: 473
+Pass 0, Processing Key: 474
+Pass 0, Processing Key: 475
+Pass 0, Processing Key: 476
+Pass 0, Processing Key: 477
+Pass 0, Processing Key: 478
+Pass 0, Processing Key: 479
+Pass 0, Processing Key: 480
+Pass 0, Processing Key: 481
+Pass 0, Processing Key: 482
+Pass 0, Processing Key: 483
+Pass 0, Processing Key: 484
+Pass 0, Processing Key: 485
+Pass 0, Processing Key: 486
+Pass 0, Processing Key: 487
+Pass 0, Processing Key: 488
+Pass 0, Processing Key: 489
+Pass 0, Processing Key: 490
+Pass 0, Processing Key: 491
+Pass 0, Processing Key: 492
+Pass 0, Processing Key: 493
+Pass 0, Processing Key: 494
+Pass 0, Processing Key: 495
+Pass 0, Processing Key: 496
+Pass 0, Processing Key: 497
+Pass 0, Processing Key: 498
+Pass 0, Processing Key: 499
+Pass 0, Processing Key: 500
+Pass 0, Processing Key: 501
+Pass 0, Processing Key: 502
+Pass 0, Processing Key: 503
+Pass 0, Processing Key: 504
+Pass 0, Processing Key: 505
+Pass 0, Processing Key: 506
+Pass 0, Processing Key: 507
+Pass 0, Processing Key: 508
+Pass 0, Processing Key: 509
+Pass 0, Processing Key: 510
+Pass 0, Processing Key: 511
+Pass 0, Processing Key: 512
+Pass 0, Processing Key: 513
+Pass 0, Processing Key: 514
+Pass 0, Processing Key: 515
+Pass 0, Processing Key: 516
+Pass 0, Processing Key: 517
+Pass 0, Processing Key: 518
+Pass 0, Processing Key: 519
+Pass 0, Processing Key: 520
+Pass 0, Processing Key: 521
+Pass 0, Processing Key: 522
+Pass 0, Processing Key: 523
+Pass 0, Processing Key: 524
+Pass 0, Processing Key: 525
+Pass 0, Processing Key: 526
+Pass 0, Processing Key: 527
+Pass 0, Processing Key: 528
+Pass 0, Processing Key: 529
+Pass 0, Processing Key: 530
+Pass 0, Processing Key: 531
+Pass 0, Processing Key: 532
+Pass 0, Processing Key: 533
+Pass 0, Processing Key: 534
+Pass 0, Processing Key: 535
+Pass 0, Processing Key: 536
+Pass 0, Processing Key: 537
+Pass 0, Processing Key: 538
+Pass 0, Processing Key: 539
+Pass 0, Processing Key: 540
+Pass 0, Processing Key: 541
+Pass 0, Processing Key: 542
+Pass 0, Processing Key: 543
+Pass 0, Processing Key: 544
+Pass 0, Processing Key: 545
+Pass 0, Processing Key: 546
+Pass 0, Processing Key: 547
+Pass 0, Processing Key: 548
+Pass 0, Processing Key: 549
+Pass 0, Processing Key: 550
+Pass 0, Processing Key: 551
+Pass 0, Processing Key: 552
+Pass 0, Processing Key: 553
+Pass 0, Processing Key: 554
+Pass 0, Processing Key: 555
+Pass 0, Processing Key: 556
+Pass 0, Processing Key: 557
+Pass 0, Processing Key: 558
+Pass 0, Processing Key: 559
+Pass 0, Processing Key: 560
+Pass 0, Processing Key: 561
+Pass 0, Processing Key: 562
+Pass 0, Processing Key: 563
+Pass 0, Processing Key: 564
+Pass 0, Processing Key: 565
+Pass 0, Processing Key: 566
+Pass 0, Processing Key: 567
+Pass 0, Processing Key: 568
+Pass 0, Processing Key: 569
+Pass 0, Processing Key: 570
+Pass 0, Processing Key: 571
+Pass 0, Processing Key: 572
+Pass 0, Processing Key: 573
+Pass 0, Processing Key: 574
+Pass 0, Processing Key: 575
+Pass 0, Processing Key: 576
+Pass 0, Processing Key: 577
+Pass 0, Processing Key: 578
+Pass 0, Processing Key: 579
+Pass 0, Processing Key: 580
+Pass 0, Processing Key: 581
+Pass 0, Processing Key: 582
+Pass 0, Processing Key: 583
+Pass 0, Processing Key: 584
+Pass 0, Processing Key: 585
+Pass 0, Processing Key: 586
+Pass 0, Processing Key: 587
+Pass 0, Processing Key: 588
+Pass 0, Processing Key: 589
+Pass 0, Processing Key: 590
+Pass 0, Processing Key: 591
+Pass 0, Processing Key: 592
+Pass 0, Processing Key: 593
+Pass 0, Processing Key: 594
+Pass 0, Processing Key: 595
+Pass 0, Processing Key: 596
+Pass 0, Processing Key: 597
+Pass 0, Processing Key: 598
+Pass 0, Processing Key: 599
+Pass 0, Processing Key: 600
+Pass 0, Processing Key: 601
+Pass 0, Processing Key: 602
+Pass 0, Processing Key: 603
+Pass 0, Processing Key: 604
+Pass 0, Processing Key: 605
+Pass 0, Processing Key: 606
+Pass 0, Processing Key: 607
+Pass 0, Processing Key: 608
+Pass 0, Processing Key: 609
+Pass 0, Processing Key: 610
+Pass 0, Processing Key: 611
+Pass 0, Processing Key: 612
+Pass 0, Processing Key: 613
+Pass 0, Processing Key: 614
+Pass 0, Processing Key: 615
+Attempt 1 for key 615 failed: GPT response did not contain valid JSON block.
+Attempt 2 for key 615 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '615'. Preview of field's value: ' '")
+Attempt 3 for key 615 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '615'. Preview of field's value: ' '")
+Failed to process key 615 after 3 attempts. Skipping.
+Pass 0, Processing Key: 616
+Attempt 1 for key 616 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '616'. Preview of field's value: ' '")
+Attempt 2 for key 616 failed: GPT response did not contain valid JSON block.
+Attempt 3 for key 616 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '616'. Preview of field's value: ' '")
+Failed to process key 616 after 3 attempts. Skipping.
+Pass 0, Processing Key: 617
+Attempt 1 for key 617 failed: GPT response did not contain valid JSON block.
+Attempt 2 for key 617 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '617'. Preview of field's value: ' '")
+Attempt 3 for key 617 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '617'. Preview of field's value: ' '")
+Failed to process key 617 after 3 attempts. Skipping.
+Pass 0, Processing Key: 618
+Attempt 1 for key 618 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '618'. Preview of field's value: ' '")
+Attempt 2 for key 618 failed: GPT response did not contain valid JSON block.
+Attempt 3 for key 618 failed: GPT response did not contain valid JSON block.
+Failed to process key 618 after 3 attempts. Skipping.
+Pass 0, Processing Key: 619
+Attempt 1 for key 619 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '619'. Preview of field's value: ' '")
+Attempt 2 for key 619 failed: GPT response did not contain valid JSON block.
+Attempt 3 for key 619 failed: RequestError(400, 'mapper_parsing_exception', "failed to parse field [step_json.22.Step Number] of type [long] in document with id '619'. Preview of field's value: ' '")
+Failed to process key 619 after 3 attempts. Skipping.
