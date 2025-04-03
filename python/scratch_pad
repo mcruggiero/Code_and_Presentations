@@ -1,71 +1,57 @@
-Created backup index: soft_string_backup_20250403_135523
-Copied documents from soft_string to soft_string_backup_20250403_135523
+from datetime import datetime
+from opensearchpy import OpenSearch
+from uuid import uuid4
 
----------------------------------------------------------------------------
-NotFoundError                             Traceback (most recent call last)
-Cell In[146], line 41
-     37         actions.append({"remove": {"index": old_index, "alias": alias_name}})
-     39 actions.append({"add": {"index": backup_index, "alias": alias_name}})
----> 41 client.indices.update_aliases({"actions": actions})
-     42 print(f"Alias '{alias_name}' now points to {backup_index}")
+# 1. Initialize the OpenSearch client
+client = OpenSearch(
+    hosts=[{"host": "localhost", "port": 9200}],
+    http_auth=("admin", "admin"),  # Replace with your credentials
+    use_ssl=False
+)
 
-File ~/.local/lib/python3.9/site-packages/opensearchpy/client/utils.py:176, in query_params.<locals>._wrapper.<locals>._wrapped(*args, **kwargs)
-    173         if v is not None:
-    174             params[p] = _escape(v)
---> 176 return func(*args, params=params, headers=headers, **kwargs)
+# 2. Define index names
+source_index = "soft_string"
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+backup_index = f"{source_index}_backup_{timestamp}"
+alias_name = f"{source_index}_current"
 
-File ~/.local/lib/python3.9/site-packages/opensearchpy/client/indices.py:1045, in IndicesClient.update_aliases(self, body, params, headers)
-   1042 if body in SKIP_IN_PATH:
-   1043     raise ValueError("Empty value passed for a required argument 'body'.")
--> 1045 return self.transport.perform_request(
-   1046     "POST", "/_aliases", params=params, headers=headers, body=body
-   1047 )
+# 3. Fetch settings and mappings from the source index
+mapping = client.indices.get_mapping(index=source_index)[source_index]["mappings"]
+settings = client.indices.get_settings(index=source_index)[source_index]["settings"]["index"]
+settings_to_copy = {
+    "settings": {
+        "number_of_shards": int(settings["number_of_shards"]),
+        "number_of_replicas": int(settings["number_of_replicas"]),
+        "index.mapping.total_fields.limit": int(
+            settings.get("mapping", {}).get("total_fields", {}).get("limit", 10000)
+        )
+    },
+    "mappings": mapping
+}
 
-File ~/.local/lib/python3.9/site-packages/opensearchpy/transport.py:457, in Transport.perform_request(self, method, url, params, body, timeout, ignore, headers)
-    455             raise e
-    456     else:
---> 457         raise e
-    459 else:
-    460     # connection didn't fail, confirm its live status
-    461     self.connection_pool.mark_live(connection)
+# 4. Create backup index
+client.indices.create(index=backup_index, body=settings_to_copy)
+print(f"Created backup index: {backup_index}")
 
-File ~/.local/lib/python3.9/site-packages/opensearchpy/transport.py:418, in Transport.perform_request(self, method, url, params, body, timeout, ignore, headers)
-    415 connection = self.get_connection()
-    417 try:
---> 418     status, headers_response, data = connection.perform_request(
-    419         method,
-    420         url,
-    421         params,
-    422         body,
-    423         headers=headers,
-    424         ignore=ignore,
-    425         timeout=timeout,
-    426     )
-    428     # Lowercase all the header names for consistency in accessing them.
-    429     headers_response = {
-    430         header.lower(): value for header, value in headers_response.items()
-    431     }
+# 5. Reindex data from the source index to the backup index
+reindex_body = {
+    "source": {"index": source_index},
+    "dest": {"index": backup_index}
+}
+client.reindex(body=reindex_body, wait_for_completion=True)
+print(f"Copied documents from {source_index} to {backup_index}")
 
-File ~/.local/lib/python3.9/site-packages/opensearchpy/connection/http_urllib3.py:308, in Urllib3HttpConnection.perform_request(self, method, url, params, body, timeout, ignore, headers)
-    304 if not (200 <= response.status < 300) and response.status not in ignore:
-    305     self.log_request_fail(
-    306         method, full_url, url, orig_body, duration, response.status, raw_data
-    307     )
---> 308     self._raise_error(
-    309         response.status,
-    310         raw_data,
-    311         self.get_response_headers(response).get("content-type"),
-    312     )
-    314 self.log_request_success(
-    315     method, full_url, url, orig_body, response.status, raw_data, duration
-    316 )
-    318 return response.status, response.headers, raw_data
+# 6. Update alias to point to the new backup index
+actions = []
 
-File ~/.local/lib/python3.9/site-packages/opensearchpy/connection/base.py:315, in Connection._raise_error(self, status_code, raw_data, content_type)
-    312 except (ValueError, TypeError) as err:
-    313     logger.warning("Undecodable raw error response from server: %s", err)
---> 315 raise HTTP_EXCEPTIONS.get(status_code, TransportError)(
-    316     status_code, error_message, additional_info
-    317 )
+try:
+    aliases = client.indices.get_alias(name=alias_name)
+    for old_index in aliases:
+        actions.append({"remove": {"index": old_index, "alias": alias_name}})
+except Exception:
+    aliases = {}
+    print(f"No existing alias '{alias_name}' to remove.")
 
-NotFoundError: NotFoundError(404, 'index_not_found_exception', 'no such index [error]', error, index_or_alias)
+actions.append({"add": {"index": backup_index, "alias": alias_name}})
+client.indices.update_aliases({"actions": actions})
+print(f"Alias '{alias_name}' now points to {backup_index}")
