@@ -1,65 +1,21 @@
 query = {
   "query": {
-    "bool": {
-      "should": [
-        {
-          "multi_match": {
-            "query": "collaboration",
-            "fields": [
-              "title",
-              "ai_text",
-              "path",
-              "information",
-              "keywords"
-            ],
-            "fuzziness": "AUTO"
-          }
-        },
-        {
-          "nested": {
-            "path": "step_json",
-            "query": {
-              "multi_match": {
-                "query": "collaboration",
-                "fields": [
-                  "step_json.Step Description",
-                  "step_json.Step Expected Result",
-                  "step_json.Details.SAP T-code",
-                  "step_json.Details.Field Instructions.Field",
-                  "step_json.Details.Field Instructions.Value",
-                  "step_json.Detailed Instructions.Action",
-                  "step_json.Detailed Instructions.Field",
-                  "step_json.Detailed Instructions.Value"
-                ],
-                "fuzziness": "AUTO"
-              }
-            },
-            "inner_hits": {
-              "highlight": {
-                "fields": {
-                  "step_json.Step Description": {},
-                  "step_json.Step Expected Result": {},
-                  "step_json.Details.SAP T-code": {},
-                  "step_json.Details.Field Instructions.Field": {},
-                  "step_json.Details.Field Instructions.Value": {},
-                  "step_json.Detailed Instructions.Action": {},
-                  "step_json.Detailed Instructions.Field": {},
-                  "step_json.Detailed Instructions.Value": {}
-                }
-              }
-            }
-          }
-        }
-      ]
-    }
-  },
-  "highlight": {
-    "fields": {
-      "title": {},
-      "ai_text": {},
-      "path": {},
-      "information": {},
-      "keywords": {}
+    "multi_match": {
+      "query": "contract collaboration",
+      "fields": [
+        "title",
+        "ai_text",
+        "path",
+        "information",
+        "keywords",
+        "name",
+        "sheet_name",
+        "creator",
+        "last_modified_by"
+      ],
+      "operator": "OR",     # Match any word
+      "type": "best_fields",  # Tries to find best single field matches
+      "fuzziness": "AUTO"    # Optional, tolerates typos
     }
   }
 }
