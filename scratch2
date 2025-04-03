@@ -1,19 +1,27 @@
-## Explanation of Nested and Exact Match Query Using Dot Notation
+if not search_result["hits"]["hits"]:
+    print("No document found with that title.")
+else:
+    original_doc = search_result["hits"]["hits"][0]["_source"]
+    print("Original document retrieved.")
 
-This query demonstrates a combined search strategy in OpenSearch that targets both top-level fields and nested fields using dot notation. The goal is to retrieve documents that match criteria in the main document structure and within a nested array of objects.
+    # Step 3: Deep copy and modify the JSON
+    original_id = search_result["hits"]["hits"][0]["_id"]
+    modified_doc = copy.deepcopy(original_doc)
+    
+    # Simulate user editing step_json (you can replace this with UI-driven input later)
+    if "step_json" in modified_doc:
+        modified_doc["step_json"]["99"] = {
+            "Step Number": 23,
+            "Step Description": "User-inserted step from editor",
+            "Step Expected Result": "Custom logic executed"}
 
-The query uses a `bool` structure with multiple `must` clauses to enforce that all specified conditions must be true for a document to match.
+    # Option A: Overwrite existing document by reusing its _id
+    overwrite = False  # Set to True if you want to replace the original
 
-First, the `path` field is searched using a phrase-based query. This field exists at the top level of the document and contains structured path data. The phrase match allows us to identify documents where the value includes the term "itc-2", which is treated as a meaningful, possibly case-insensitive phrase within the indexed text. Although not an exact keyword match, this type of search is sufficient for matching specific terms within analyzed `text` fields.
-
-Next, a `nested` query is used to examine individual entries in the `step_json` array. This field is explicitly mapped as `nested`, meaning OpenSearch treats each element in the array as its own subdocument. This allows us to construct queries that apply to each step individually, rather than the array as a whole.
-
-Inside the `nested` query, two conditions are applied. One searches within the `Step Description` field for the presence of the word "Validate" using a phrase match. The second searches within the `Step Expected Result` field for the exact phrase "All fields are populated correctly". These conditions are written using dot notation, which allows precise access to deeply nested fields, such as `step_json.Step Description` and `step_json.Step Expected Result`.
-
-The use of dot notation here is critical. It tells OpenSearch to look specifically within the nested path defined by the `step_json` field. Without this, the query would not correctly target the subfields within the nested structure, and matches would not be evaluated per-object.
-
-The query also includes an `inner_hits` clause, which returns the specific nested objects that matched. This is especially useful for verifying which steps within the array satisfied the search conditions, rather than only seeing that a document matched overall.
-
-Lastly, a `_source` filter is applied to limit the returned fields. This optimizes response size by retrieving only the document name, path, and step content relevant to the query.
-
-In summary, this query combines top-level filtering and nested field searching in a unified structure, using dot notation to precisely navigate and query fields deep within the document schema.
+    if overwrite:
+        response = client.index(index="soft_string", id=original_id, body=modified_doc)
+        print(f"Document overwritten (same ID): {original_id}")
+    else:
+        new_id = str(uuid4())  # Generate a unique ID
+        response = client.index(index="soft_string", id=new_id, body=modified_doc)
+        print(f"Modified document inserted with new ID: {new_id}")
