@@ -1,27 +1,43 @@
-query = {
-  "query": {
-    "nested": {
-      "path": "step_json",
-      "query": {
-        "match": {
-          "step_json.Step Description": "Validate"
-        }
-      },
-      "inner_hits": {
-        "highlight": {
-          "fields": {
-            "step_json.Step Description": {}
-          }
-        }
-      }
-    }
-  }
-}
+### Why Use `highlight` in OpenSearch Queries?
 
-response = client.search(index="soft_string", body=query)
+Highlighting in OpenSearch is a powerful feature that helps surface *exact portions of text* that match a given search term. Instead of just returning which documents matched, `highlight` visually pinpoints **where** in the content a match occurred.
 
-for hit in response["hits"]["hits"]:
-    inner = hit.get("inner_hits", {})
-    if "step_json" in inner:
-        for inner_hit in inner["step_json"]["hits"]["hits"]:
-            print("Highlighted:", inner_hit.get("highlight", {}))
+---
+
+### 🔍 How Highlighting Works
+
+When you perform a `match` query and include a `highlight` block:
+- OpenSearch returns the fields that contain your search term.
+- The matching term is wrapped in HTML tags (e.g., `<em>` by default).
+- These tags allow your UI or review tool to **visually emphasize** relevant sections.
+
+---
+
+### 📌 Why Highlighting Helps During Iterative Review
+
+In your workflow, you often update `step_json` or `ai_json` fields based on user feedback or QA input. Here’s how `highlight` improves that process:
+
+1. **Precise Context for Editors**  
+   Instead of manually scanning a large instruction set, the team can immediately **see which sentence or step matched** a term like `"validate"` or `"incorrect entry"`, saving time and reducing confusion.
+
+2. **Focused Editing**  
+   Highlighting tells editors exactly *which part* of the document triggered the match, allowing them to refine just that sentence or field, rather than guessing or rewriting the entire step.
+
+3. **Comparing Human vs. AI Edits**  
+   When both `ai_json` and `step_json` contain similar instructions, highlighting lets reviewers instantly compare **what the AI wrote** vs. **what the human adjusted**, especially when validating precision or tone.
+
+4. **Surfacing Ambiguity**  
+   If a user reports an issue like “the step isn’t clear,” you can highlight all occurrences of the word `"select"` or `"click"` across documents to quickly find **ambiguous phrasing** and clean it up.
+
+5. **Interactive QA Tooling**  
+   Your team could integrate highlights into an internal UI that lets reviewers **click through and edit** only the affected steps — enabling smart version control and audit trails.
+
+---
+
+### 🧠 Tip for Nested Fields
+
+Since your structured content is stored in `nested` fields (like `step_json.Step Description`), highlighting must be performed with a `nested` query and the use of `inner_hits`. This ensures OpenSearch returns highlights from the **correct sub-object** inside an array.
+
+---
+
+Using `highlight` is not just a cosmetic feature — it's a practical tool for accelerating document iteration, increasing editing accuracy, and enhancing collaboration across technical and non-technical team members.
