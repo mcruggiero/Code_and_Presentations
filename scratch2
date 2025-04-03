@@ -1,27 +1,39 @@
+GET soft_string/_search
 {
   "query": {
-    "nested": {
-      "path": "step_json",
-      "query": {
-        "bool": {
-          "must": [
-            {
-              "match_phrase": {
-                "step_json.Step Description": "Validate"
+    "bool": {
+      "must": [
+        {
+          "match_phrase": {
+            "path": "itc-2"
+          }
+        },
+        {
+          "nested": {
+            "path": "step_json",
+            "query": {
+              "bool": {
+                "must": [
+                  {
+                    "match_phrase": {
+                      "step_json.Step Description": "Validate"
+                    }
+                  },
+                  {
+                    "match_phrase": {
+                      "step_json.Step Expected Result": "All fields are populated correctly"
+                    }
+                  }
+                ]
               }
             },
-            {
-              "term": {
-                "step_json.Step Expected Result.keyword": "All fields are populated correctly"
-              }
+            "inner_hits": {
+              "size": 5
             }
-          ]
+          }
         }
-      },
-      "inner_hits": {
-        "size": 5
-      }
+      ]
     }
   },
-  "_source": ["name", "step_json.Step Description", "step_json.Step Expected Result"]
+  "_source": ["name", "path", "step_json"]
 }
