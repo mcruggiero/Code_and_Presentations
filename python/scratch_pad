@@ -1,43 +1,53 @@
-### Why Use `highlight` in OpenSearch Queries?
+from datetime import datetime
+from opensearchpy import OpenSearch, helpers
+import uuid
 
-Highlighting in OpenSearch is a powerful feature that helps surface *exact portions of text* that match a given search term. Instead of just returning which documents matched, `highlight` visually pinpoints **where** in the content a match occurred.
+# 1. Initialize the OpenSearch client
+client = OpenSearch(
+    hosts=[{"host": "localhost", "port": 9200}],
+    http_auth=("admin", "admin"),
+    use_ssl=False
+)
 
----
+# 2. Define names
+source_index = "soft_string"
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+backup_index = f"{source_index}_backup_{timestamp}"
+alias_name = f"{source_index}_current"
 
-### 🔍 How Highlighting Works
+# 3. Create backup index (with same mapping)
+mapping = client.indices.get_mapping(index=source_index)[source_index]["mappings"]
+settings = client.indices.get_settings(index=source_index)[source_index]["settings"]["index"]
+settings_to_copy = {
+    "settings": {
+        "number_of_shards": int(settings["number_of_shards"]),
+        "number_of_replicas": int(settings["number_of_replicas"]),
+        "index.mapping.total_fields.limit": int(settings.get("mapping", {}).get("total_fields", {}).get("limit", 1000))
+    },
+    "mappings": mapping
+}
 
-When you perform a `match` query and include a `highlight` block:
-- OpenSearch returns the fields that contain your search term.
-- The matching term is wrapped in HTML tags (e.g., `<em>` by default).
-- These tags allow your UI or review tool to **visually emphasize** relevant sections.
+client.indices.create(index=backup_index, body=settings_to_copy)
+print(f"Created backup index: {backup_index}")
 
----
+# 4. Reindex from source to backup
+reindex_body = {
+    "source": {"index": source_index},
+    "dest": {"index": backup_index}
+}
+client.reindex(body=reindex_body, wait_for_completion=True)
+print(f"Copied documents from {source_index} to {backup_index}")
 
-### 📌 Why Highlighting Helps During Iterative Review
+# 5. Update alias: point alias to backup index (optional)
+# Remove existing alias from any index and point it to the backup
+aliases = client.indices.get_alias(name=alias_name, ignore=404)
+actions = []
 
-In your workflow, you often update `step_json` or `ai_json` fields based on user feedback or QA input. Here’s how `highlight` improves that process:
+if aliases and isinstance(aliases, dict):
+    for old_index in aliases:
+        actions.append({"remove": {"index": old_index, "alias": alias_name}})
 
-1. **Precise Context for Editors**  
-   Instead of manually scanning a large instruction set, the team can immediately **see which sentence or step matched** a term like `"validate"` or `"incorrect entry"`, saving time and reducing confusion.
+actions.append({"add": {"index": backup_index, "alias": alias_name}})
 
-2. **Focused Editing**  
-   Highlighting tells editors exactly *which part* of the document triggered the match, allowing them to refine just that sentence or field, rather than guessing or rewriting the entire step.
-
-3. **Comparing Human vs. AI Edits**  
-   When both `ai_json` and `step_json` contain similar instructions, highlighting lets reviewers instantly compare **what the AI wrote** vs. **what the human adjusted**, especially when validating precision or tone.
-
-4. **Surfacing Ambiguity**  
-   If a user reports an issue like “the step isn’t clear,” you can highlight all occurrences of the word `"select"` or `"click"` across documents to quickly find **ambiguous phrasing** and clean it up.
-
-5. **Interactive QA Tooling**  
-   Your team could integrate highlights into an internal UI that lets reviewers **click through and edit** only the affected steps — enabling smart version control and audit trails.
-
----
-
-### 🧠 Tip for Nested Fields
-
-Since your structured content is stored in `nested` fields (like `step_json.Step Description`), highlighting must be performed with a `nested` query and the use of `inner_hits`. This ensures OpenSearch returns highlights from the **correct sub-object** inside an array.
-
----
-
-Using `highlight` is not just a cosmetic feature — it's a practical tool for accelerating document iteration, increasing editing accuracy, and enhancing collaboration across technical and non-technical team members.
+client.indices.update_aliases({"actions": actions})
+print(f"Alias '{alias_name}' now points to {backup_index}")
