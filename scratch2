@@ -1,3 +1,5 @@
+### Step 2 and 3: Extract and Modify matching document
+
 if not search_result["hits"]["hits"]:
     print("No document found with that title.")
 else:
