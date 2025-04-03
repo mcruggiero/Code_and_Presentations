@@ -110,3 +110,28 @@ This mapping is functional and expressive, but future iterations may optimize me
     }
   ]
 }
+
+- **Purpose:** Ensures that all fields with type `string` are automatically mapped as `text`.
+- **Behavior:** This allows full-text search across arbitrary fields not explicitly defined in the mapping.
+- **Note:** This is a legacy choice. In future revisions, a more constrained or explicit mapping approach is expected to reduce memory usage and improve indexing performance.
+
+---
+
+### Summary
+
+The `soft_string` index schema supports a comprehensive pipeline for AI-enriched document processing and metadata capture. Key features include:
+
+- **Structured AI and human steps** using `nested` mappings in `ai_json` and `step_json`
+- **Model-driven evaluation metrics** such as `clarity_sequence`, `accuracy`, and `actionability`
+- **Comprehensive metadata** for file tracking (`path`, `name`, `title`, `extension`, etc.)
+- **Version and review tracking** through `status`, `tags`, `review_status`, and `source_pipeline`
+- **Metric support** for numeric trends and observations through the `metrics` nested field
+- **Temporal tracking** using standardized `date` fields like `created`, `modified`, and `ingest_time`
+
+This mapping is designed for flexibility and is currently in use, but a future version may include:
+
+- A shift toward `keyword` fields for identifiers and categoricals
+- Reduced dynamic field generation
+- Optimization of nested structures to minimize query cost
+
+Understanding this structure allows for precise querying, effective enrichment, and extensible data management within OpenSearch.
