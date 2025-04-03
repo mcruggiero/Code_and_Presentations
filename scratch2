@@ -1,23 +1,24 @@
-# Step 3: Deep copy and modify the JSON
-original_id = search_result["hits"]["hits"][0]["_id"]
-modified_doc = copy.deepcopy(original_doc)
-
-# Simulate user editing step_json (you can replace this with UI-driven input later)
-if "step_json" in modified_doc and isinstance(modified_doc["step_json"], list):
-    modified_doc["step_json"].append({
-        "Step Number": 23,
-        "Step Description": "User-inserted step from editor",
-        "Step Expected Result": "Custom logic executed",
-        "Details": {
-            "SAP T-code": "",
-            "Field Instructions": {
-                "Field": "",
-                "Value": ""
-            }
-        },
-        "Detailed Instructions": {
-            "Action": "",
-            "Field": "",
-            "Value": ""
+query = {
+  "query": {
+    "nested": {
+      "path": "step_json",
+      "query": {
+        "multi_match": {
+          "query": "hana",
+          "fields": [
+            "step_json.Step Description",
+            "step_json.Step Expected Result",
+            "step_json.Details.SAP T-code",
+            "step_json.Details.Field Instructions.Field",
+            "step_json.Details.Field Instructions.Value",
+            "step_json.Detailed Instructions.Action",
+            "step_json.Detailed Instructions.Field",
+            "step_json.Detailed Instructions.Value"
+          ],
+          "fuzziness": "AUTO"
         }
-    })
+      },
+      "inner_hits": {}  # Optional: show matching sub-docs
+    }
+  }
+}
