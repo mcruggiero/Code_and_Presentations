@@ -1,29 +1,23 @@
-### Step 2 and 3: Extract and Modify matching document
+# Step 3: Deep copy and modify the JSON
+original_id = search_result["hits"]["hits"][0]["_id"]
+modified_doc = copy.deepcopy(original_doc)
 
-if not search_result["hits"]["hits"]:
-    print("No document found with that title.")
-else:
-    original_doc = search_result["hits"]["hits"][0]["_source"]
-    print("Original document retrieved.")
-
-    # Step 3: Deep copy and modify the JSON
-    original_id = search_result["hits"]["hits"][0]["_id"]
-    modified_doc = copy.deepcopy(original_doc)
-    
-    # Simulate user editing step_json (you can replace this with UI-driven input later)
-    if "step_json" in modified_doc:
-        modified_doc["step_json"]["99"] = {
-            "Step Number": 23,
-            "Step Description": "User-inserted step from editor",
-            "Step Expected Result": "Custom logic executed"}
-
-    # Option A: Overwrite existing document by reusing its _id
-    overwrite = False  # Set to True if you want to replace the original
-
-    if overwrite:
-        response = client.index(index="soft_string", id=original_id, body=modified_doc)
-        print(f"Document overwritten (same ID): {original_id}")
-    else:
-        new_id = str(uuid4())  # Generate a unique ID
-        response = client.index(index="soft_string", id=new_id, body=modified_doc)
-        print(f"Modified document inserted with new ID: {new_id}")
+# Simulate user editing step_json (you can replace this with UI-driven input later)
+if "step_json" in modified_doc and isinstance(modified_doc["step_json"], list):
+    modified_doc["step_json"].append({
+        "Step Number": 23,
+        "Step Description": "User-inserted step from editor",
+        "Step Expected Result": "Custom logic executed",
+        "Details": {
+            "SAP T-code": "",
+            "Field Instructions": {
+                "Field": "",
+                "Value": ""
+            }
+        },
+        "Detailed Instructions": {
+            "Action": "",
+            "Field": "",
+            "Value": ""
+        }
+    })
