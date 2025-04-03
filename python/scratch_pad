@@ -1,16 +1,27 @@
 query = {
-    "query": {
+  "query": {
+    "nested": {
+      "path": "step_json",
+      "query": {
         "match": {
-            "step_json.Step Description": "Validate"
+          "step_json.Step Description": "Validate"
         }
-    },
-    "highlight": {
-        "fields": {
+      },
+      "inner_hits": {
+        "highlight": {
+          "fields": {
             "step_json.Step Description": {}
+          }
         }
+      }
     }
+  }
 }
 
 response = client.search(index="soft_string", body=query)
+
 for hit in response["hits"]["hits"]:
-    print("Highlight:", hit.get("highlight"))
+    inner = hit.get("inner_hits", {})
+    if "step_json" in inner:
+        for inner_hit in inner["step_json"]["hits"]["hits"]:
+            print("Highlighted:", inner_hit.get("highlight", {}))
