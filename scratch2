@@ -1,21 +1,33 @@
-query = {
-  "query": {
-    "multi_match": {
-      "query": "contract collaboration",
-      "fields": [
-        "title",
-        "ai_text",
-        "path",
-        "information",
-        "keywords",
-        "name",
-        "sheet_name",
-        "creator",
-        "last_modified_by"
-      ],
-      "operator": "OR",     # Match any word
-      "type": "best_fields",  # Tries to find best single field matches
-      "fuzziness": "AUTO"    # Optional, tolerates typos
+from opensearchpy import OpenSearch
+import pandas as pd
+
+# Connect to OpenSearch
+client = OpenSearch(
+    hosts=[{'host': 'localhost', 'port': 9200}],  # Update if needed
+    http_auth=('admin', 'admin'),                 # Update credentials
+    use_ssl=False,
+    verify_certs=False
+)
+
+# Query: Get unique 'name' values
+response = client.search(
+    index="soft_string",
+    size=0,  # No docs returned, just aggregation
+    body={
+        "aggs": {
+            "unique_names": {
+                "terms": {
+                    "field": "name.keyword",
+                    "size": 1000  # Max number of unique entries to return
+                }
+            }
+        }
     }
-  }
-}
+)
+
+# Convert aggregation results to a table
+buckets = response["aggregations"]["unique_names"]["buckets"]
+df = pd.DataFrame([{"Name": b["key"], "Count": b["doc_count"]} for b in buckets])
+
+# Display
+print(df)
