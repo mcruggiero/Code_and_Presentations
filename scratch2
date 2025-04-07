@@ -1,88 +1,97 @@
-# 📘 Inspecting the `.hackaton` Index Mapping
+response = os_client.search(
+    index="hackaton_write",
+    body={
+        "query": {
+            "match": {
+                "test_case_name": "Mass Update"
+            }
+        }
+    }
+)
+response["hits"]["hits"]
 
-This document describes the field structure and indexing behavior of the `.hackaton` index deployed in OpenSearch. The mapping supports complex, nested data structures with AI- and analyst-derived metadata, designed to support auditability, searchability, and extensibility.
+### 🔍 Query 1: Match on `test_case_name`
+This query searches for documents where the `test_case_name` field contains the phrase `"Mass Update"`.  
+It uses full-text matching, so it's flexible and returns partial matches.  
+This is useful when browsing for related tests by their titles.
 
----
+response = os_client.search(
+    index="hackaton_write",
+    body={
+        "query": {
+            "term": {
+                "review_status": "unreviewed"
+            }
+        }
+    }
+)
+response["hits"]["hits"]
 
-## 🔍 Overview
+### 🔒 Query 2: Filter by Exact `review_status`
+This uses a `term` query to filter for documents with `review_status` exactly equal to `"unreviewed"`.  
+Because `review_status` is a keyword field, this is a precise, case-sensitive match — perfect for dashboards or filters.
 
-The `.hackaton` index schema includes:
+response = os_client.search(
+    index="hackaton_write",
+    body={
+        "query": {
+            "nested": {
+                "path": "step_json",
+                "query": {
+                    "match_phrase": {
+                        "step_json.Step Description": "Move to the next Decision Point"
+                    }
+                }
+            }
+        }
+    }
+)
+response["hits"]["hits"]
 
-- Nested fields for both human-authored and AI-augmented procedural steps
-- Evaluation metrics stored as nested JSON objects
-- Structured metadata for file origin, authorship, and ingestion
-- Fields for classification, scoring, and tracking document evolution
+### 🧩 Query 3: Search Within `step_json` (Nested Field)
+This `nested` query looks inside `step_json`, a list of procedural steps,  
+and finds any document where a step’s `Step Description` exactly includes the phrase `"Move to the next Decision Point"`.  
+This is useful for finding test cases that involve specific actions or UI interactions.
 
-The mapping prioritizes clarity and searchability while maintaining support for future analytics and expansion.
+response = os_client.search(
+    index="hackaton_write",
+    body={
+        "query": {
+            "nested": {
+                "path": "ai_json",
+                "query": {
+                    "match": {
+                        "ai_json.Details.Field Instructions.Field": "Portfolio Items Dashboard"
+                    }
+                }
+            }
+        }
+    }
+)
+response["hits"]["hits"]
 
----
+### 🤖 Query 4: Search AI-Generated Field Instructions
+This query searches within the deeply nested `ai_json` field,  
+targeting a specific instruction field (`Details.Field Instructions.Field`).  
+Here, it looks for `"Portfolio Items Dashboard"` in the AI-generated step context.  
+Great for understanding how the AI describes or recommends specific form fields or dashboards.
 
-## 🧱 Field Descriptions
+response = os_client.search(
+    index="hackaton_write",
+    body={
+        "size": 5,
+        "query": {
+            "match_all": {}
+        },
+        "sort": [
+            {"created": {"order": "desc"}}
+        ]
+    }
+)
+response["hits"]["hits"]
 
-### 1. `ai_json` (type: `nested`)
-- **Purpose:** Stores structured AI-generated procedural steps.
-- **Fields:**
-  - `Step Number`: integer  
-  - `Step Description`: text  
-  - `Step Expected Result`: text  
-  - `Details`:  
-    - `SAP T-code`: text  
-    - `Field Instructions`:  
-      - `Field`: text  
-      - `Value`: text  
-      - *Plus additional fields like:*  
-        - `Category`, `Group`, `Program/Project Manager`, etc.
-  - `Detailed Instructions`:  
-    - `Action`: text  
-    - `Field`: text  
-    - `Value`: text  
+### 📅 Query 5: Get Most Recently Created Documents
+This query returns the 5 most recently created documents using a `match_all` query and a descending `sort` on the `created` date field.  
+Useful for reviewing new entries or running freshness checks during indexing or analysis.
 
-### 2. `step_json` (type: `nested`)
-- **Purpose:** Stores human-authored procedural steps.
-- **Fields:**
-  - `Step Number`: integer  
-  - `Step Description`: text  
-  - `Step Expected Result`: text
 
-### 3. `metrics` (type: `nested`)
-- **Purpose:** Captures time-series metrics or auxiliary analysis results.
-- **Fields:**
-  - `name`: text  
-  - `value`: float  
-  - `note`: text  
-  - `timestamp`: date
-
-### 4. `accuracy`, `clarity_sequence`, `actionability`, `scores` (type: `float`)
-- **Purpose:** Evaluation scores generated by AI or human reviewers.
-
-### 5. `created`, `modified`, `generated`, `ingest_time`, `ai_upate` (type: `date`)
-- **Format:** ISO 8601 date format (e.g., `2025-04-07T02:18:12.588898`)
-- **Purpose:** Tracks various lifecycle events of the document.
-
-### 6. `creator`, `last_modified_by`, `reviewed_by` (type: `text` with keyword subfield)
-- **Purpose:** Metadata for document authorship and reviewer identity.
-
-### 7. `test_case_name`, `description`, `keywords`, `subject`, `category`, `information`, `other`, `tags` (type: `text`)
-- **Purpose:** General metadata about the test case or document.
-- **Note:** Some fields include `.keyword` subfields for exact filtering.
-
-### 8. `review_status`, `ai_model`, `version`, `extension`, `portfolio`, `sheet_name`, `source_pipeline` (type: `keyword`)
-- **Purpose:** Categorical fields used for filtering, sorting, and aggregations.
-
-### 9. `step_count`, `token_count`, `type_count`, `schema_version`, `itc-1`, `itc-2`, `itc-3` (type: `integer`)
-- **Purpose:** Integer fields used for internal statistics or classification tagging.
-
-### 10. `os_index`, `name`, `path` (type: `keyword` or `text`)
-- `os_index`: keyword (unique document identifier)
-- `name`: keyword (file name)
-- `path`: text (full file path for provenance and tracing)
-
----
-
-## ⚙️ Notes
-
-- Nested fields like `ai_json` and `metrics` allow rich querying across step-by-step records and time-series values.
-- Date fields follow flexible ISO formats supported by OpenSearch’s `strict_date_optional_time` parser.
-- Many text fields include `.keyword` subfields for dual search + filter capabilities.
-
-This mapping supports robust document analysis pipelines while leaving room for future schema refinements.
