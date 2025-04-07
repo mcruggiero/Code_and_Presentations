@@ -1,85 +1,37 @@
-### 🧠 Query 6: Fuzzy Search with Exact Filter and Date Range
+### ✨ Query 8: Highlight Matches Inside `step_json.Step Description`
 
-This query uses a `bool` query to combine fuzzy and exact logic:
+This query searches within the nested `step_json` field for the term `"Decision Point"`  
+and returns matched documents with highlighted snippets.
 
-- `match` on `test_case_name` with `"fuzziness": "AUTO"` allows forgiving searches (e.g., "Updte" will still match "Update")
-- `term` on `review_status` ensures only documents marked `unreviewed` are included (exact match on a `keyword` field)
-- `range` filter on `created` includes only documents created in 2023 or later
-- Results are sorted by `created` date in descending order
+- `highlight.fields` targets the specific field to extract match contexts
+- `pre_tags` and `post_tags` define the formatting used to highlight matches (in this case, HTML `<mark>` tags)
+- The `match` query works with full-text analysis, so it finds partial tokens and similar forms
 
-This is great for searching user-input terms while still enforcing strict filters.
+This is especially useful in search interfaces where you want to show users **where** their query hit inside complex documents.
 
-# Define advanced query body separately for clarity
+
 query_body = {
     "query": {
-        "bool": {
-            "must": [
-                {  # Fuzzy full-text match on test_case_name (slightly misspelled input OK)
-                    "match": {
-                        "test_case_name": {
-                            "query": "Mass Updte",
-                            "fuzziness": "AUTO"
-                        }
-                    }
-                },
-                {  # Exact match on review_status using keyword type
-                    "term": {
-                        "review_status": {
-                            "value": "unreviewed"
-                        }
-                    }
-                }
-            ],
-            "filter": [
-                {  # Only include docs created after 2023-01-01
-                    "range": {
-                        "created": {
-                            "gte": "2023-01-01"
-                        }
-                    }
-                }
-            ]
-        }
-    },
-    "size": 5,
-    "sort": [
-        {"created": {"order": "desc"}}
-    ]
-}
-
-# Execute query
-response = os_client.search(index="hackaton_write", body=query_body)
-response["hits"]["hits"]
-
-### 📊 Query 7: Aggregate AI Models with Average Accuracy
-
-This aggregation query analyzes your index by:
-
-- Grouping documents by `ai_model` (a keyword field)
-- Counting how many documents used each model
-- Calculating the average `accuracy` score per model
-
-This is useful for evaluating model performance trends, doing QA audits, or analyzing experimental rollouts.  
-You can easily replace `accuracy` with `actionability`, `clarity_sequence`, or other fields for broader evaluation.
-
-query_body = {
-    "size": 0,  # No documents, just aggregations
-    "aggs": {
-        "models": {
-            "terms": {
-                "field": "ai_model",
-                "size": 10  # Top 10 models
-            },
-            "aggs": {
-                "avg_accuracy": {
-                    "avg": {
-                        "field": "accuracy"
-                    }
+        "nested": {
+            "path": "step_json",
+            "query": {
+                "match": {
+                    "step_json.Step Description": "Decision Point"
                 }
             }
         }
-    }
+    },
+    "highlight": {
+        "fields": {
+            "step_json.Step Description": {
+                "pre_tags": ["<mark>"],   # HTML tag before match
+                "post_tags": ["</mark>"]  # HTML tag after match
+            }
+        }
+    },
+    "size": 5
 }
 
 response = os_client.search(index="hackaton_write", body=query_body)
-response["aggregations"]
+response["hits"]["hits"]
+
