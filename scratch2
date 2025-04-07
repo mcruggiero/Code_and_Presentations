@@ -1,97 +1,85 @@
-response = os_client.search(
-    index="hackaton_write",
-    body={
-        "query": {
-            "match": {
-                "test_case_name": "Mass Update"
-            }
-        }
-    }
-)
-response["hits"]["hits"]
+### 🧠 Query 6: Fuzzy Search with Exact Filter and Date Range
 
-### 🔍 Query 1: Match on `test_case_name`
-This query searches for documents where the `test_case_name` field contains the phrase `"Mass Update"`.  
-It uses full-text matching, so it's flexible and returns partial matches.  
-This is useful when browsing for related tests by their titles.
+This query uses a `bool` query to combine fuzzy and exact logic:
 
-response = os_client.search(
-    index="hackaton_write",
-    body={
-        "query": {
-            "term": {
-                "review_status": "unreviewed"
-            }
-        }
-    }
-)
-response["hits"]["hits"]
+- `match` on `test_case_name` with `"fuzziness": "AUTO"` allows forgiving searches (e.g., "Updte" will still match "Update")
+- `term` on `review_status` ensures only documents marked `unreviewed` are included (exact match on a `keyword` field)
+- `range` filter on `created` includes only documents created in 2023 or later
+- Results are sorted by `created` date in descending order
 
-### 🔒 Query 2: Filter by Exact `review_status`
-This uses a `term` query to filter for documents with `review_status` exactly equal to `"unreviewed"`.  
-Because `review_status` is a keyword field, this is a precise, case-sensitive match — perfect for dashboards or filters.
+This is great for searching user-input terms while still enforcing strict filters.
 
-response = os_client.search(
-    index="hackaton_write",
-    body={
-        "query": {
-            "nested": {
-                "path": "step_json",
-                "query": {
-                    "match_phrase": {
-                        "step_json.Step Description": "Move to the next Decision Point"
-                    }
-                }
-            }
-        }
-    }
-)
-response["hits"]["hits"]
-
-### 🧩 Query 3: Search Within `step_json` (Nested Field)
-This `nested` query looks inside `step_json`, a list of procedural steps,  
-and finds any document where a step’s `Step Description` exactly includes the phrase `"Move to the next Decision Point"`.  
-This is useful for finding test cases that involve specific actions or UI interactions.
-
-response = os_client.search(
-    index="hackaton_write",
-    body={
-        "query": {
-            "nested": {
-                "path": "ai_json",
-                "query": {
+# Define advanced query body separately for clarity
+query_body = {
+    "query": {
+        "bool": {
+            "must": [
+                {  # Fuzzy full-text match on test_case_name (slightly misspelled input OK)
                     "match": {
-                        "ai_json.Details.Field Instructions.Field": "Portfolio Items Dashboard"
+                        "test_case_name": {
+                            "query": "Mass Updte",
+                            "fuzziness": "AUTO"
+                        }
+                    }
+                },
+                {  # Exact match on review_status using keyword type
+                    "term": {
+                        "review_status": {
+                            "value": "unreviewed"
+                        }
+                    }
+                }
+            ],
+            "filter": [
+                {  # Only include docs created after 2023-01-01
+                    "range": {
+                        "created": {
+                            "gte": "2023-01-01"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "size": 5,
+    "sort": [
+        {"created": {"order": "desc"}}
+    ]
+}
+
+# Execute query
+response = os_client.search(index="hackaton_write", body=query_body)
+response["hits"]["hits"]
+
+### 📊 Query 7: Aggregate AI Models with Average Accuracy
+
+This aggregation query analyzes your index by:
+
+- Grouping documents by `ai_model` (a keyword field)
+- Counting how many documents used each model
+- Calculating the average `accuracy` score per model
+
+This is useful for evaluating model performance trends, doing QA audits, or analyzing experimental rollouts.  
+You can easily replace `accuracy` with `actionability`, `clarity_sequence`, or other fields for broader evaluation.
+
+query_body = {
+    "size": 0,  # No documents, just aggregations
+    "aggs": {
+        "models": {
+            "terms": {
+                "field": "ai_model",
+                "size": 10  # Top 10 models
+            },
+            "aggs": {
+                "avg_accuracy": {
+                    "avg": {
+                        "field": "accuracy"
                     }
                 }
             }
         }
     }
-)
-response["hits"]["hits"]
+}
 
-### 🤖 Query 4: Search AI-Generated Field Instructions
-This query searches within the deeply nested `ai_json` field,  
-targeting a specific instruction field (`Details.Field Instructions.Field`).  
-Here, it looks for `"Portfolio Items Dashboard"` in the AI-generated step context.  
-Great for understanding how the AI describes or recommends specific form fields or dashboards.
-
-response = os_client.search(
-    index="hackaton_write",
-    body={
-        "size": 5,
-        "query": {
-            "match_all": {}
-        },
-        "sort": [
-            {"created": {"order": "desc"}}
-        ]
-    }
-)
-response["hits"]["hits"]
-
-### 📅 Query 5: Get Most Recently Created Documents
-This query returns the 5 most recently created documents using a `match_all` query and a descending `sort` on the `created` date field.  
-Useful for reviewing new entries or running freshness checks during indexing or analysis.
-
-
+response = os_client.search(index="hackaton_write", body=query_body)
+response["aggregations"]
