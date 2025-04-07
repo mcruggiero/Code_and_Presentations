@@ -1,84 +1,54 @@
-from opensearchpy import OpenSearch
-
-# Initialize your OpenSearch client
-os_client = OpenSearch(
-    hosts=[{"host": "localhost", "port": 9200}],
-    http_auth=("admin", "admin"),  # Update as needed
-    use_ssl=False,
-    verify_certs=False
-)
-
-# Step 1: Create the hidden index (with dot prefix)
+# Index & alias names
 HIDDEN_INDEX = ".hackaton"
 ALIAS_NAME = "hackaton_write"
+POLICY_ID = "hackaton-no-delete"
 
-# Replace this with your full mapping
-your_mapping = {
-    "mappings": {
-        "properties": {
-            "test_case_name": { "type": "text" }
-            # ... insert your full mapping here
-        }
-    }
-}
 
-# Create hidden index if it doesn't exist
+# Step 2: Create hidden index
 if not os_client.indices.exists(index=HIDDEN_INDEX):
     os_client.indices.create(index=HIDDEN_INDEX, body=your_mapping)
-    print(f"✅ Created hidden index: {HIDDEN_INDEX}")
+    print(f"✅ Created index: {HIDDEN_INDEX}")
 else:
     print(f"ℹ️ Index {HIDDEN_INDEX} already exists.")
 
-# Step 2: Attach no-delete lifecycle policy
-policy_id = "hackaton-no-delete"
+# Step 3: Create ISM policy to prevent deletion
 policy_body = {
-    "policy": {
-        "description": "Never delete this index",
-        "default_state": "ingest",
-        "states": [
-            {
-                "name": "ingest",
-                "actions": [],
-                "transitions": []
-            }
-        ],
-        "ism_template": {
-            "index_patterns": [HIDDEN_INDEX],
-            "priority": 100
-        }
+  "policy": {
+    "description": "Never delete this index",
+    "default_state": "ingest",
+    "states": [
+      {
+        "name": "ingest",
+        "actions": [],
+        "transitions": []
+      }
+    ],
+    "ism_template": {
+      "index_patterns": [HIDDEN_INDEX],
+      "priority": 100
     }
+  }
 }
 
-# Create the policy (if OpenSearch ISM plugin is enabled)
 try:
     os_client.transport.perform_request(
         "PUT",
-        f"/_plugins/_ism/policies/{policy_id}",
+        f"/_plugins/_ism/policies/{POLICY_ID}",
         body=policy_body
     )
-    print("✅ ISM policy created.")
-
-    # Attach policy to the index
     os_client.indices.put_settings(
         index=HIDDEN_INDEX,
-        body={"settings": {"opendistro.index_state_management.policy_id": policy_id}}
+        body={"settings": {"opendistro.index_state_management.policy_id": POLICY_ID}}
     )
-    print("✅ Attached ISM no-delete policy.")
+    print("✅ ISM policy created and attached.")
 except Exception as e:
-    print("⚠️ Could not apply ISM policy. Make sure ISM plugin is enabled.")
+    print("⚠️ Could not apply ISM policy (plugin may be missing):")
     print(e)
 
-# Step 3: Create an alias for writing
-alias_body = {
+# Step 4: Create alias for safer writes
+os_client.indices.update_aliases(body={
     "actions": [
-        {
-            "add": {
-                "index": HIDDEN_INDEX,
-                "alias": ALIAS_NAME
-            }
-        }
+        { "add": { "index": HIDDEN_INDEX, "alias": ALIAS_NAME } }
     ]
-}
-
-os_client.indices.update_aliases(body=alias_body)
+})
 print(f"✅ Created alias: {ALIAS_NAME} → {HIDDEN_INDEX}")
