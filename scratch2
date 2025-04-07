@@ -249,3 +249,42 @@ just_test_cases.sample(2).T.to_dict() ->{3551: {'os_index': 'T3JpZ2luYWxseSBpbiB
   'token_count': 0,
   'source_pipeline': '',
   'ingest_time': '2025-04-07'}}
+
+      "metrics": {
+        "type": "nested",
+        "properties": {
+          "name": { "type": "text" },
+          "value": { "type": "float" },
+          "note": { "type": "text" },
+          "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
+        }
+
+      "ai_json": {
+        "type": "nested",
+        "properties": {
+          "Step Number": { "type": "long" },
+          "Step Description": { "type": "text" },
+          "Step Expected Result": { "type": "text" },
+          "Details": {
+            "type": "object",
+            "properties": {
+              "Field Instructions": {
+                "type": "object",
+                "properties": {
+                  "Field": { "type": "text" },
+                  "Value": { "type": "text" }
+                }
+              },
+              "SAP T-code": { "type": "text" }
+            }
+          },
+          "Detailed Instructions": {
+            "type": "object",
+            "properties": {
+              "Action": { "type": "text" },
+              "Field": { "type": "text" },
+              "Value": { "type": "text" }
+            }
+          }
+        }
+      },
