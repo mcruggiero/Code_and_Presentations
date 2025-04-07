@@ -1,3 +1,8 @@
+['os_index', 'generated', 'path', 'name', 'extension', 'portfolio',
+       'sheet_name', 'creator', 'last_modified_by', 'created', 'modified',
+       'subject', 'keywords', 'description', 'category', 'itc-3', 'itc-2',
+       'itc-1', 'type_count', 'version', 'test_case_name', 'step_json']
+
 just_test_cases.sample(5)[[x for x in just_test_cases.columns if x not in ['title', "pandas_data", 'cols_in_sheet']]].T.to_dict() ->
 
 {2787: {'os_index': 'T3JpZ2luYWxseSBpbiBQaXBlbGluZSBEYXRlOiAyMDI1LTA0LTA2IDIzOjA4OjQ5LjMwNTYwOQpQYXRoOiAvaG9tZS9qb3Z5YW4vc2lsdmVyLWlndWFuYS9kYXRhL3VzLWdibC0xbG14LWVycC1leHQtZWloLzMuICBJbnRlZ3JhdGlvbiBUZXN0IFJlcG9zaXRvcnkvSVRDLTIvUHJvZCBPcHMvSU5UX1BUU18wMDMgLSBFeGVjdXRlIE1hbnVmYWN0dXJpbmcgLSBCdWlsZCAtIEV4dGVybmFsIFByb2N1cmVtZW50L1Rlc3QgQ2FzZXMvMDYuVENfUFRTXyBQbGFubmluZyBFeGVjdXRpb24ueGxzeApTaGVldCAjOiBTaGVldDE=',
