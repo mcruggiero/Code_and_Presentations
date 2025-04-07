@@ -1,110 +1,84 @@
-{
-  "mappings": {
-    "properties": {
-      "os_index": { "type": "keyword" },
-      "generated": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-      "path": { "type": "text" },
-      "name": { "type": "keyword" },
-      "extension": { "type": "keyword" },
-      "portfolio": { "type": "keyword" },
-      "sheet_name": { "type": "keyword" },
-      "creator": {
-        "type": "text",
-        "fields": {
-          "keyword": { "type": "keyword", "ignore_above": 256 }
-        }
-      },
-      "last_modified_by": {
-        "type": "text",
-        "fields": {
-          "keyword": { "type": "keyword", "ignore_above": 256 }
-        }
-      },
-      "created": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-      "modified": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-      "subject": { "type": "text" },
-      "keywords": { "type": "text" },
-      "description": { "type": "text" },
-      "category": { "type": "text" },
+from opensearchpy import OpenSearch
 
-      "itc-3": { "type": "integer" },
-      "itc-2": { "type": "integer" },
-      "itc-1": { "type": "integer" },
-      "type_count": { "type": "integer" },
+# Initialize your OpenSearch client
+os_client = OpenSearch(
+    hosts=[{"host": "localhost", "port": 9200}],
+    http_auth=("admin", "admin"),  # Update as needed
+    use_ssl=False,
+    verify_certs=False
+)
 
-      "version": { "type": "keyword" },
-      "test_case_name": { "type": "text" },
+# Step 1: Create the hidden index (with dot prefix)
+HIDDEN_INDEX = ".hackaton"
+ALIAS_NAME = "hackaton_write"
 
-      "step_json": {
-        "type": "nested",
+# Replace this with your full mapping
+your_mapping = {
+    "mappings": {
         "properties": {
-          "Step Number": { "type": "integer" },
-          "Step Description": { "type": "text" },
-          "Step Expected Result": { "type": "text" }
+            "test_case_name": { "type": "text" }
+            # ... insert your full mapping here
         }
-      },
-
-      "ai_json": {
-        "type": "nested",
-        "properties": {
-          "Step Number": { "type": "integer" },
-          "Step Description": { "type": "text" },
-          "Step Expected Result": { "type": "text" },
-          "Details": {
-            "type": "object",
-            "properties": {
-              "Field Instructions": {
-                "type": "object",
-                "properties": {
-                  "Field": { "type": "text" },
-                  "Value": { "type": "text" }
-                }
-              },
-              "SAP T-code": { "type": "text" }
-            }
-          },
-          "Detailed Instructions": {
-            "type": "object",
-            "properties": {
-              "Action": { "type": "text" },
-              "Field": { "type": "text" },
-              "Value": { "type": "text" }
-            }
-          }
-        }
-      },
-
-      "information": { "type": "text" },
-      "other": { "type": "text" },
-
-      "clarity_sequence": { "type": "float" },
-      "accuracy": { "type": "float" },
-      "actionability": { "type": "float" },
-      "scores": { "type": "float" },
-
-      "ai_upate": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-
-      "metrics": {
-        "type": "nested",
-        "properties": {
-          "name": { "type": "text" },
-          "value": { "type": "float" },
-          "note": { "type": "text" },
-          "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
-        }
-      },
-
-      "schema_version": { "type": "integer" },
-      "tags": { "type": "text" },
-      "ai_model": { "type": "keyword" },
-      "reviewed_by": { "type": "text" },
-      "review_status": { "type": "keyword" },
-
-      "step_count": { "type": "integer" },
-      "token_count": { "type": "integer" },
-
-      "source_pipeline": { "type": "keyword" },
-      "ingest_time": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
     }
-  }
 }
+
+# Create hidden index if it doesn't exist
+if not os_client.indices.exists(index=HIDDEN_INDEX):
+    os_client.indices.create(index=HIDDEN_INDEX, body=your_mapping)
+    print(f"✅ Created hidden index: {HIDDEN_INDEX}")
+else:
+    print(f"ℹ️ Index {HIDDEN_INDEX} already exists.")
+
+# Step 2: Attach no-delete lifecycle policy
+policy_id = "hackaton-no-delete"
+policy_body = {
+    "policy": {
+        "description": "Never delete this index",
+        "default_state": "ingest",
+        "states": [
+            {
+                "name": "ingest",
+                "actions": [],
+                "transitions": []
+            }
+        ],
+        "ism_template": {
+            "index_patterns": [HIDDEN_INDEX],
+            "priority": 100
+        }
+    }
+}
+
+# Create the policy (if OpenSearch ISM plugin is enabled)
+try:
+    os_client.transport.perform_request(
+        "PUT",
+        f"/_plugins/_ism/policies/{policy_id}",
+        body=policy_body
+    )
+    print("✅ ISM policy created.")
+
+    # Attach policy to the index
+    os_client.indices.put_settings(
+        index=HIDDEN_INDEX,
+        body={"settings": {"opendistro.index_state_management.policy_id": policy_id}}
+    )
+    print("✅ Attached ISM no-delete policy.")
+except Exception as e:
+    print("⚠️ Could not apply ISM policy. Make sure ISM plugin is enabled.")
+    print(e)
+
+# Step 3: Create an alias for writing
+alias_body = {
+    "actions": [
+        {
+            "add": {
+                "index": HIDDEN_INDEX,
+                "alias": ALIAS_NAME
+            }
+        }
+    ]
+}
+
+os_client.indices.update_aliases(body=alias_body)
+print(f"✅ Created alias: {ALIAS_NAME} → {HIDDEN_INDEX}")
