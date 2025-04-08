@@ -1,51 +1,24 @@
-from opensearchpy import OpenSearch
+all_v000_docs = []
 
-client = OpenSearch(...)  # your OS setup
-index_name = "hackaton_write"
-
-scroll = client.search(
-    index=index_name,
+response = client.search(
+    index="hackaton_write",
     scroll="2m",
     size=500,
-    _source=["step_json", "ai_json"],
+    _source=True,
     body={"query": {"match_all": {}}}
 )
-scroll_id = scroll["_scroll_id"]
-hits = scroll["hits"]["hits"]
+
+scroll_id = response["_scroll_id"]
+hits = response["hits"]["hits"]
 
 while hits:
     for hit in hits:
-        doc_id = hit["_id"]
-        source = hit["_source"]
+        if hit["_id"].endswith("_v000"):
+            all_v000_docs.append(hit)
 
-        if not doc_id.endswith("_v000"):
-            continue
+    # Fetch next scroll batch
+    response = client.scroll(scroll_id=scroll_id, scroll="2m")
+    scroll_id = response["_scroll_id"]
+    hits = response["hits"]["hits"]
 
-        # Check for _v001
-        enriched_id = doc_id.replace("_v000", "_v001")
-        if client.exists(index=index_name, id=enriched_id):
-            print(f"Already enriched: {doc_id}")
-            continue
-
-        # Ensure step_json is present
-        if "step_json" not in source or not source["step_json"]:
-            print(f"Missing step_json in {doc_id}")
-            continue
-
-        # Enrich
-        new_doc = source.copy()
-        new_doc["ai_json"] = generate_ai_json_from_step_json(source["step_json"])
-        new_doc["os_index"] = enriched_id
-        new_doc["review_status"] = "unreviewed"
-        new_doc["ai_upate"] = datetime.today().strftime("%Y-%m-%d")
-
-        try:
-            client.index(index=index_name, id=enriched_id, body=new_doc)
-            print(f"✅ Enriched and added: {enriched_id}")
-        except Exception as e:
-            print(f"❌ Error writing {enriched_id}: {e}")
-
-    # Scroll to next batch
-    scroll = client.scroll(scroll_id=scroll_id, scroll="2m")
-    scroll_id = scroll["_scroll_id"]
-    hits
+print(f"📦 Collected {len(all_v000_docs)} original documents (_v000)")
