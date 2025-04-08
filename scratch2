@@ -1,37 +1,102 @@
-### ✨ Query 8: Highlight Matches Inside `step_json.Step Description`
+time_format = "%Y-%m-%d"
+start_time = datetime.now()
 
-This query searches within the nested `step_json` field for the term `"Decision Point"`  
-and returns matched documents with highlighted snippets.
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")  # Ignore openpyxl warnings
 
-- `highlight.fields` targets the specific field to extract match contexts
-- `pre_tags` and `post_tags` define the formatting used to highlight matches (in this case, HTML `<mark>` tags)
-- The `match` query works with full-text analysis, so it finds partial tokens and similar forms
+    sheets_dict = {}
+    counter = 0
 
-This is especially useful in search interfaces where you want to show users **where** their query hit inside complex documents.
+    for key, value in xls_dict.items():
+        entry = copy.deepcopy(value)
+        path = entry["path"]
 
+        try:
+            xl = pd.ExcelFile(path)
+            workbook = openpyxl.load_workbook(path)
+        except Exception as e:
+            print(f"Failed to load {path}: {e}")
+            continue
 
-query_body = {
-    "query": {
-        "nested": {
-            "path": "step_json",
-            "query": {
-                "match": {
-                    "step_json.Step Description": "Decision Point"
-                }
-            }
-        }
-    },
-    "highlight": {
-        "fields": {
-            "step_json.Step Description": {
-                "pre_tags": ["<mark>"],   # HTML tag before match
-                "post_tags": ["</mark>"]  # HTML tag after match
-            }
-        }
-    },
-    "size": 5
-}
+        for sheet_num, sheet_name in enumerate(xl.sheet_names):
+            try:
+                pandas_data = xl.parse(sheet_name).fillna("")
+                entry["sheet_name"] = sheet_name
+                entry["cols_in_sheet"] = list(pandas_data.columns)
+                entry["pandas_data"] = pandas_data
 
-response = os_client.search(index="hackaton_write", body=query_body)
-response["hits"]["hits"]
+                # Document metadata from workbook properties
+                props = workbook.properties
+                entry["creator"] = props.creator
+                entry["last_modified_by"] = props.lastModifiedBy
+                entry["created"] = props.created
+                entry["modified"] = props.modified
+                entry["title"] = props.title
+                entry["subject"] = props.subject
+                entry["keywords"] = props.keywords
+                entry["description"] = props.description
+                entry["category"] = props.category
 
+                # Classify test type based on path
+                path_clean = path.lower().replace("-", "")
+                entry["itc-3"] = int("itc3" in path_clean)
+                entry["itc-2"] = int("itc2" in path_clean)
+                entry["itc-1"] = int("itc1" in path_clean)
+                entry["type_count"] = entry["itc-3"] + entry["itc-2"] + entry["itc-1"]
+
+                # Assign version number
+                entry["version"] = version_title(pandas_data)
+
+                # Optional title for display/search
+                entry["test_case_name"] = pandas_data.iloc[0, 0]
+
+                # Step parser
+                entry["step_json"] = step_json_maker(pandas_data)
+
+                # Create a deterministic ID using path and sheet info
+                os_base = base64.urlsafe_b64encode(
+                    f"Originally in Pipeline Date: {go_time}\nPath: {path}\nSheet #: {sheet_name}_{sheet_num}".encode()
+                ).decode()
+                entry["ver"] = os_base
+                entry["os_index"] = f"{os_base}_v000"
+
+                # Final metadata fields
+                entry["information"] = ""
+                entry["other"] = ""
+                entry["clarity_sequence"] = 0
+                entry["accuracy"] = 0
+                entry["actionability"] = 0
+                entry["scores"] = 0
+                entry["ai_upate"] = datetime.today().strftime(time_format)
+                entry["metrics"] = []
+                entry["ai_json"] = []  # Placeholder for later AI enrichment
+                entry["schema_version"] = 0
+                entry["tags"] = ""
+                entry["ai_model"] = "soft prompt second build"
+                entry["reviewed_by"] = "Auto Generated"
+                entry["review_status"] = "unreviewed"
+                entry["step_count"] = 0
+                entry["token_count"] = 0
+                entry["source_pipeline"] = ""
+                entry["ingest_time"] = datetime.today().strftime(time_format)
+
+                # Optional: Store in memory
+                sheets_dict[counter] = entry
+                counter += 1
+
+                # Send to OpenSearch alias index
+                os_client.index(
+                    index="hackaton_write",
+                    id=entry["os_index"],
+                    body=entry
+                )
+
+            except Exception as e:
+                print(f"Skipping sheet '{sheet_name}' in '{path}': {e}")
+                continue
+
+        if key % 100 == 0:
+            print(f"{key:10}{len(sheets_dict):10}\t{sheet_name}_{sheet_num}")
+
+end_time = datetime.now()
+print(f"Complete Sheet Parsing Time: {end_time - start_time}")
