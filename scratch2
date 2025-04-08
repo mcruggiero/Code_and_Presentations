@@ -1,48 +1,24 @@
-## Comparing Query Strategies: Phrase Prefix vs. Fuzzy Search and the Idea of Distance
+query_text = "lease"  # basic prefix term
 
-When designing search experiences that return flexible matches, it's important to understand the different behaviors of OpenSearch query types.
-
----
-
-### 1. `match_phrase_prefix`
-
-This query returns documents where the field begins with the phrase provided. It is especially useful for prefix or autocomplete-style matching.
-
-For example:
-
-- A query for `"ship"` could return:
-  - `ship`
-  - `shipping`
-  - `shipment`
-  - `shipper`
-- A query for `"shipping"` will only return terms that begin with `"shipping"` such as:
-  - `shipping`
-  - `shipping label`
-  - `shipping manifest`
-
-The shorter the prefix, the **broader** the match.
-
----
-
-### 2. `multi_match` with `fuzziness`
-
-This query type is based on the concept of **edit distance** (how many character changes it takes to transform one word into another). It is helpful for misspellings or alternate spellings.
-
-For example, with `"fuzziness": "AUTO"`:
-- A query for `"shpping"` might still return `"shipping"`
-- But it is less likely to match `"ship"` since the edit distance is greater (more changes are needed)
-
----
-
-### 3. The Idea of Distance
-
-- `fuzziness` uses **Levenshtein distance**, which measures similarity between two words based on insertions, deletions, or substitutions.
-- `match_phrase_prefix` does not rely on distance—it uses **prefix alignment**. It does not care about spelling errors, only that the phrase starts correctly.
-
----
-
-### Summary
-
-- Use `match_phrase_prefix` when you want to match **prefix-based forms**, like search-as-you-type.
-- Use `fuzziness` when you're accounting for **misspellings or typos**, but expect **narrower results** if the query is too short.
-- These two strategies can be combined for better coverage, depending on how your users type and what kind of search flexibility they expect.
+os_client.search(index="main_index", body={
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "match_phrase_prefix": {
+                        "test_case_name": query_text
+                    }
+                }
+            ],
+            "filter": [
+                {
+                    "script": {
+                        "script": "doc['ai_json'].size() > 0"
+                    }
+                }
+            ]
+        }
+    },
+    "size": 5,
+    "_source": ["test_case_name", "ai_json"]
+})
