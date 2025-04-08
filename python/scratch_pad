@@ -1,6 +1,4 @@
-{'ver': 'T3JpZ2luYWxseSBpbiBQaXBlbGluZSBEYXRlOiAyMDI1LTA0LTA3IDIzOjE4OjA2LjE0OTg0NSBQYXRoOiB1cy1nYmwtMWxteC1lcnAtZXh0LWVpaC8yLiAgU3RyaW5nIFRlc3QgUmVwb3NpdG9yeS9GaW5hbmNlL1NUUl9GSV9DQV9DcmVhdGUgU2V0dGxlbWVudCBSdWxlc19JVEMzLnhsc3g=',
- 'os_index': 'T3JpZ2luYWxseSBpbiBQaXBlbGluZSBEYXRlOiAyMDI1LTA0LTA3IDIzOjE4OjA2LjE0OTg0NSBQYXRoOiB1cy1nYmwtMWxteC1lcnAtZXh0LWVpaC8yLiAgU3RyaW5nIFRlc3QgUmVwb3NpdG9yeS9GaW5hbmNlL1NUUl9GSV9DQV9DcmVhdGUgU2V0dGxlbWVudCBSdWxlc19JVEMzLnhsc3g=_v000',
- 'generated': datetime.datetime(2025, 4, 7, 23, 18, 6, 149845),
+{{'generated': datetime.datetime(2025, 4, 7, 23, 18, 6, 149845),
  'path': 'us-gbl-1lmx-erp-ext-eih/2.  String Test Repository/Finance/STR_FI_CA_Create Settlement Rules_ITC3.xlsx',
  'load_path': '/home/jovyan/silver-iguana/data/us-gbl-1lmx-erp-ext-eih/2.  String Test Repository/Finance/STR_FI_CA_Create Settlement Rules_ITC3.xlsx',
  'name': 'STR_FI_CA_Create Settlement Rules_ITC3.xlsx',
