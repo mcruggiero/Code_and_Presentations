@@ -1,34 +1,27 @@
-# Clean base query with "ship"
-query_simple = "ship"
-result_simple = os_client.search(index="main_index", body={
+query_text = "ship"
+
+os_client.search(index="main_index", body={
     "query": {
-        "multi_match": {
-            "query": query_simple,
-            "fields": ["test_case_name^2"],
-            "fuzziness": "AUTO",
-            "operator": "and",
-            "type": "best_fields"
+        "match_phrase_prefix": {
+            "test_case_name": {
+                "query": query_text
+            }
         }
     },
-    "size": 5,
+    "size": 10,
     "_source": ["test_case_name"]
 })
 
-# Longer query with "shipping"
-query_longer = "shipping"
-result_longer = os_client.search(index="main_index", body={
+query_text = "shipping"
+
+os_client.search(index="main_index", body={
     "query": {
-        "multi_match": {
-            "query": query_longer,
-            "fields": ["test_case_name^2"],
-            "fuzziness": "AUTO",
-            "operator": "and",
-            "type": "best_fields"
+        "match_phrase_prefix": {
+            "test_case_name": {
+                "query": query_text
+            }
         }
     },
-    "size": 5,
+    "size": 10,
     "_source": ["test_case_name"]
 })
-
-print(f"Query: 'ship' -> Total Hits: {result_simple['hits']['total']['value']}")
-print(f"Query: 'shipping' -> Total Hits: {result_longer['hits']['total']['value']}")
