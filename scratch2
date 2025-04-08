@@ -1,24 +1,35 @@
-all_v000_docs = []
+from datetime import datetime
 
-response = client.search(
-    index="hackaton_write",
-    scroll="2m",
-    size=500,
-    _source=True,
-    body={"query": {"match_all": {}}}
-)
+def generate_ai_json_from_step_json(step_json):
+    # Dummy function – replace with real enrichment logic
+    return [{"step": s, "ai_notes": "Auto enriched"} for s in step_json]
 
-scroll_id = response["_scroll_id"]
-hits = response["hits"]["hits"]
+for hit in all_v000_docs:
+    doc_id = hit["_id"]
+    source = hit["_source"]
 
-while hits:
-    for hit in hits:
-        if hit["_id"].endswith("_v000"):
-            all_v000_docs.append(hit)
+    enriched_id = doc_id.replace("_v000", "_v001")
 
-    # Fetch next scroll batch
-    response = client.scroll(scroll_id=scroll_id, scroll="2m")
-    scroll_id = response["_scroll_id"]
-    hits = response["hits"]["hits"]
+    # Skip if enriched version already exists
+    if client.exists(index="hackaton_write", id=enriched_id):
+        print(f"⏩ Skipping existing: {enriched_id}")
+        continue
 
-print(f"📦 Collected {len(all_v000_docs)} original documents (_v000)")
+    if "step_json" not in source or not source["step_json"]:
+        print(f"⚠️ Missing step_json in {doc_id}")
+        continue
+
+    try:
+        new_doc = source.copy()
+        new_doc["ai_json"] = generate_ai_json_from_step_json(source["step_json"])
+        new_doc["ai_upate"] = datetime.today().strftime("%Y-%m-%d")
+        new_doc["ai_model"] = "soft prompt second build"
+        new_doc["review_status"] = "unreviewed"
+        new_doc["os_index"] = enriched_id
+        new_doc["ver"] = enriched_id  # optional
+
+        client.index(index="hackaton_write", id=enriched_id, body=new_doc)
+        print(f"✅ Enriched and indexed: {enriched_id}")
+
+    except Exception as e:
+        print(f"❌ Failed to enrich {doc_id}: {e}")
