@@ -1,3 +1,11 @@
+{'os_index': 'T3JpZ2luYWxseSBpbiBQaXBlbGluZSBEYXRlOiAyMDI1LTA0LTA3IDIzOjE4OjA2LjE0OTg0NSBQYXRoOiB0ZXN0LXJlZmluZXJ5LWRhdGEvMUxNWCBFUlAgUG9ydGZvbGlvIFRlc3QgU2NyaXB0IFJlcG9zaXRvcnkueGxzeA==_v0',
+ 'generated': datetime.datetime(2025, 4, 7, 23, 18, 6, 149845),
+ 'path': 'test-refinery-data/1LMX ERP Portfolio Test Script Repository.xlsx',
+ 'name': '1LMX ERP Portfolio Test Script Repository.xlsx',
+ 'extension': 'xlsx',
+ 'portfolio': 'test-refinery-data',
+ 'version': 0}
+
 time_format = '%Y-%m-%d'
 start_time = datetime.now()
 
