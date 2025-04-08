@@ -1,12 +1,16 @@
 os_client.search(index="main_index", body={
     "query": {
-        "script": {
-            "script": {
-                "source": "doc['ai_json'].size() > 0"
+        "nested": {
+            "path": "ai_json",
+            "query": {
+                "bool": {
+                    "must": [
+                        { "match": { "ai_json.Step Number": 1 } }
+                    ]
+                }
             }
         }
     },
     "size": 5,
     "_source": ["test_case_name", "ai_json"]
 })
-
