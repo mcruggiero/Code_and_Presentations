@@ -1,25 +1,20 @@
-query_text = "Eqipment Lease Lifecycel"  # Misspelled on purpose
-
 os_client.search(index="main_index", body={
     "query": {
-        "multi_match": {
-            "query": query_text,
-            "fields": ["test_case_name^2"],  # Boost this field if you add more later
-            "fuzziness": "AUTO",             # Edit distance 1–2 allowed
-            "operator": "and",
-            "type": "best_fields"            # Score best matching field
+        "bool": {
+            "must": {
+                "multi_match": {
+                    "query": "lease lifecycle",
+                    "fields": ["test_case_name^2"],
+                    "fuzziness": "AUTO"
+                }
+            },
+            "filter": {
+                "script": {
+                    "script": "doc['ai_json'].size() > 0"
+                }
+            }
         }
     },
     "size": 5,
-    "_source": ["test_case_name", "path", "ai_json"]
+    "_source": ["test_case_name", "ai_json", "path"]
 })
-
-multi_match: Allows future expansion — add title, description, etc.
-
-fuzziness: AUTO: Automatically allows typos (edit distance of 1–2).
-
-operator: and: Requires all tokens to roughly match.
-
-best_fields: Scores the best-matching field most highly.
-
-^2 boost: Increases impact of test_case_name over other fields if added.
