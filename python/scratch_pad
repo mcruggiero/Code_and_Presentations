@@ -8,10 +8,11 @@ else:
 # Step 3: Prevent Deletes
 os_client.indices.put_settings(
     index=HIDDEN_INDEX,
-    body={"settings":
-          {
-              "index.blocks.delete": True
-          }
+    body={
+        "settings": {
+            "index.blocks.delete": True
+        }
+    }
 )
 
 # Step 4: Create alias for safer writes
