@@ -1,19 +1,5 @@
-# Step 3: Prevent Deletes
-os_client.indices.add_block(index=HIDDEN_INDEX, block="delete")
-
-# Step 4: Create alias for safer writes
-os_client.indices.update_aliases(body={
-    "actions": [
-        { "add": { "index": HIDDEN_INDEX, "alias": ALIAS_NAME } }
-    ]
-})
-print(f"Created alias: {ALIAS_NAME} -> {HIDDEN_INDEX}")
-
-File ~/.local/lib/python3.9/site-packages/opensearchpy/connection/base.py:315, in Connection._raise_error(self, status_code, raw_data, content_type)
-    312 except (ValueError, TypeError) as err:
-    313     logger.warning("Undecodable raw error response from server: %s", err)
---> 315 raise HTTP_EXCEPTIONS.get(status_code, TransportError)(
-    316     status_code, error_message, additional_info
-    317 )
-
-RequestError: RequestError(400, 'illegal_argument_exception', 'No block found with name delete')
+# List all aliases and their corresponding indices
+aliases = os_client.indices.get_alias()
+for index_name, data in aliases.items():
+    for alias in data.get("aliases", {}):
+        print(f"Index: {index_name} ↔ Alias: {alias}")
