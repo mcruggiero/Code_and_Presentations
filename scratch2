@@ -1,24 +1,12 @@
-query_text = "lease"  # basic prefix term
-
 os_client.search(index="main_index", body={
     "query": {
-        "bool": {
-            "must": [
-                {
-                    "match_phrase_prefix": {
-                        "test_case_name": query_text
-                    }
-                }
-            ],
-            "filter": [
-                {
-                    "script": {
-                        "script": "doc['ai_json'].size() > 0"
-                    }
-                }
-            ]
+        "script": {
+            "script": {
+                "source": "doc['ai_json'].size() > 0"
+            }
         }
     },
     "size": 5,
     "_source": ["test_case_name", "ai_json"]
 })
+
