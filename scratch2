@@ -1,68 +1,47 @@
-query_text = "SHipping_["  # Misspelled on purpose
-​
-result = os_client.search(index="main_index", body={
-    "query": {
-        "multi_match": {
-            "query": query_text,
-            "fields": ["test_case_name^2"],  # Boost this field if you add more later
-            "fuzziness": "AUTO",             # Edit distance 1–2 allowed
-            "operator": "and",
-            "type": "best_fields"            # Score best matching field
-        }
-    },
-    "size": 5,
-    "_source": ["test_case_name"]
-})
-result["hits"]
-result["hits"]
-{'total': {'value': 41, 'relation': 'eq'},
- 'max_score': 10.468174,
- 'hits': [{'_index': '.hacker_2025-04-08',
-   '_id': 'MjAyNS0wNC0wOAp1cy1nYmwtMWxteC1lcnAtZXh0LWVpaC8zLiAgSW50ZWdyYXRpb24gVGVzdCBSZXBvc2l0b3J5L0lUQy0xL1Byb2QgT3BzL0lOVF9QVFNfMDAzIC0gRXhlY3V0ZSBNYW51ZmFjdHVyaW5nIC0gQnVpbGQgLSBFeHRlcm5hbCBQcm9jdXJlbWVudC9UZXN0IENhc2VzLzIyLlRDX1BUU19Qcm9jZXNzIE91dGJvdW5kIFNoaXBwaW5nLnhsc3gKVGVzdCBDYXNl_v000',
-   '_score': 10.468174,
-   '_source': {'test_case_name': 'TC_PTS_Process Outbound Shipping'}},
-  {'_index': '.hacker_2025-04-08',
-   '_id': 'MjAyNS0wNC0wOAp1cy1nYmwtMWxteC1lcnAtZXh0LWVpaC8zLiAgSW50ZWdyYXRpb24gVGVzdCBSZXBvc2l0b3J5L0lUQy0yL0ZpbmFuY2UvREVMRVRFL0lOVF9SVFJfMDA4Ql9ERUwvU1RSX1BUU19URF9Qcm9jZXNzIE91dGJvdW5kIFNoaXBwaW5nLnhsc3gKVGVzdCBDYXNl_v000',
-   '_score': 10.468174,
-   '_source': {'test_case_name': 'STR_PTS_TD_Process Outbound Shipping'}},
-  {'_index': '.hacker_2025-04-08',
-   '_id': 'MjAyNS0wNC0wOAp1cy1nYmwtMWxteC1lcnAtZXh0LWVpaC8zLiAgSW50ZWdyYXRpb24gVGVzdCBSZXBvc2l0b3J5L0lUQy0zL0ZpbmFuY2UvSU5UX1JUUl8wMDVCIC0gSW50ZXJpbSBTdGF0ZSBJbnRlcmNvbXBhbnkgUHJvamVjdCBTdG9jayAtIENyb3NzIEJvcmRlciAtIFBlcmZvcm1lciBNRkMgUzQvU1RSX1BUU19URF9Qcm9jZXNzIE91dGJvdW5kIFNoaXBwaW5nLnhsc3gKVGVzdCBDYXNl_v000',
-   '_score': 10.468174,
-   '_source': {'test_case_name': 'STR_PTS_TD_Process Outbound Shipping'}},
-  {'_index': '.hacker_2025-04-08',
-   '_id': 'MjAyNS0wNC0wOAp1cy1nYmwtMWxteC1lcnAtZXh0LWVpaC8zLiAgSW50ZWdyYXRpb24gVGVzdCBSZXBvc2l0b3J5L0lUQy0zL0ZpbmFuY2UvSU5UX1JUUl8wMDhCIC0gSW50ZXJpbSBTdGF0ZSAtIEludHJhY29tcGFueSBQcm9qZWN0IFN0b2NrL1NUUl9QVFNfVERfUHJvY2VzcyBPdXRib3VuZCBTaGlwcGluZy54bHN4ClRlc3QgQ2FzZQ==_v000',
-   '_score': 10.468174,
-   '_source': {'test_case_name': 'STR_PTS_TD_Process Outbound Shipping'}},
-  {'_index': '.hacker_2025-04-08',
-   '_id': 'MjAyNS0wNC0wOCAwODo1Nzo0MC4yODIzMzkKMUxNWCBSZWxlYXNlIDEgQnVpbGQgUHJvamVjdCBTLzQvU1RSIEwzIFByb2Nlc3MgT3V0Ym91bmQgU2hpcHBpbmcgKFNUUl9QVFNfVERfUFJPQ0VTUyBPVVRCT1VORCBTSElQUElOKS9TVFJfUFRTX1REX1Byb2Nlc3MgT3V0Ym91bmQgU2hpcHBpbmcKVGVzdCBDYXNl_v000',
-   '_score': 10.468174,
-   '_source': {'test_case_name': 'STR_PTS_TD_Process Outbound Shipping'}}]}
-ship
-query_text = "ship"  # Misspelled on purpose
-​
-result = os_client.search(index="main_index", body={
-    "query": {
-        "multi_match": {
-            "query": query_text,
-            "fields": ["test_case_name^2"],  # Boost this field if you add more later
-            "fuzziness": "AUTO",             # Edit distance 1–2 allowed
-            "operator": "and",
-            "type": "best_fields"            # Score best matching field
-        }
-    },
-    "size": 5,
-    "_source": ["test_case_name"]
-})
+### 🔍 Why does a longer, messier query return **more** fuzzy matches?
 
+This notebook explains why a query like `"SHipping_["` returns **more hits** than a cleaner query like `"ship"` when using `multi_match` with fuzziness in OpenSearch.
 
+---
 
+### 🧠 Key Concepts
 
+- **`fuzziness: "AUTO"`** allows small typos (edit distance of 1–2), depending on the word length.
+  - Words with **length ≤ 3** → **no or 1 typo allowed**
+  - Words with **length ≥ 5** → **up to 2 typos allowed**
 
+- **`operator: "and"`** requires **all terms in the query** (after tokenization) to match (even fuzzily).
+  - So `"ship out"` must match both `"ship"` and `"out"` in the field.
+  - A single fuzzy mismatch will block a result.
 
-result["hits"]
-{'total': {'value': 1, 'relation': 'eq'},
- 'max_score': 13.95414,
- 'hits': [{'_index': '.hacker_2025-04-08',
-   '_id': 'MjAyNS0wNC0wOCAwODo1Nzo0MC4yODIzMzkKMUxNWCBSZWxlYXNlIDEgQnVpbGQgUHJvamVjdCBTLzQvSU5UX1BUU18wMDhHLUREMjUwLVBvc3QgU2hpcCAoSU5UX1BUU18wMDhHLUREMjUwLVBPU1QgU0hJUCkvVENfUFRTX1Byb2Nlc3MgT3V0Ym91bmQgU2hpcHBpbmdfREQyNTBfUG9zdCBTaGlwClRlc3QgQ2FzZQ==_v000',
-   '_score': 13.95414,
-   '_source': {'test_case_name': 'TC_PTS_Process Outbound Shipping_DD250_Post Ship'}}]}
+---
+
+### 🧪 Example
+
+#### Query: `"SHipping_["`
+- Treated as **1 fuzzy token**
+- Fuzziness kicks in with **many possible variations**
+- → ✅ **Returns many results**
+
+#### Query: `"ship"`
+- Treated as a **short exact word**
+- Fuzziness is limited: only exact or near-exact matches allowed
+- → ❌ **Returns fewer results**
+
+---
+
+### ✅ How to Fix or Tune
+
+| Option                         | Effect                                       |
+|-------------------------------|----------------------------------------------|
+| `operator: "or"`              | Match *any* token, increases hit count       |
+| `fuzziness: 2`                | Force higher edit distance, even for short terms |
+| Use synonyms or n-grams       | Improve short-word matching capabilities     |
+
+---
+
+### 💡 Summary
+
+> Fuzzy search is **more flexible for long, weird-looking queries** than for short, clean words.
+> To improve matches for short words, adjust `fuzziness` or remove strict `operator: "and"`.
+
