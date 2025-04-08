@@ -1,82 +1,117 @@
-## Managing Index Backups and Aliases in OpenSearch
 
-When working with OpenSearch in a collaborative environment, it's important to balance data safety, version control, and ease of use. This is where backups and aliases come in.
+mapping = {
+  "settings": {
+    "number_of_shards": 5,
+    "number_of_replicas": 2,
+    "index.mapping.total_fields.limit": 10000
+  },
+  "mappings": {
+    "properties": {
+      "os_index": { "type": "keyword" },
+      
+      "generated": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "path": { "type": "text" },
+      "name": { "type": "keyword" },
+      "extension": { "type": "keyword" },
+      "portfolio": { "type": "keyword" },
+      "sheet_name": { "type": "keyword" },
+      "sheet_name_cleaned": { "type": "keyword" },
+      "version": { "type": "keyword" },
+      "test_case_name": { "type": "text" },
+      "creator": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 256 }
+        }
+      },
+      "ver": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 256 }
+        }
+      },
+      "created": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "modified": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+      "subject": { "type": "text" },
+      "keywords": { "type": "text" },
+      "description": { "type": "text" },
+      "category": { "type": "text" },
 
----
+      "itc-3": { "type": "integer" },
+      "itc-2": { "type": "integer" },
+      "itc-1": { "type": "integer" },
+      "type_count": { "type": "integer" },
 
-### Purpose of This Pattern
+      "step_json": {
+        "type": "nested",
+        "properties": {
+          "Step Number": { "type": "integer" },
+          "Step Description": { "type": "text" },
+          "Step Expected Result": { "type": "text" }
+        }
+      },
 
-This strategy allows us to:
+      "ai_json": {
+        "type": "nested",
+        "properties": {
+          "Step Number": { "type": "integer" },
+          "Step Description": { "type": "text" },
+          "Step Expected Result": { "type": "text" },
+          "Details": {
+            "type": "object",
+            "properties": {
+              "Field Instructions": {
+                "type": "object",
+                "properties": {
+                  "Field": { "type": "text" },
+                  "Value": { "type": "text" }
+                }
+              },
+              "SAP T-code": { "type": "text" }
+            }
+          },
+          "Detailed Instructions": {
+            "type": "object",
+            "properties": {
+              "Action": { "type": "text" },
+              "Field": { "type": "text" },
+              "Value": { "type": "text" }
+            }
+          }
+        }
+      },
 
-- Take timestamped snapshots of an index.
-- Enable non-destructive experimentation or updates.
-- Always interact with a stable, versioned reference (via an alias) instead of raw indices.
-- Switch between versions of the data without breaking application logic or tooling.
+      "information": { "type": "text" },
+      "other": { "type": "text" },
 
----
+      "clarity_sequence": { "type": "float" },
+      "accuracy": { "type": "float" },
+      "actionability": { "type": "float" },
+      "scores": { "type": "float" },
 
-## Step-by-Step Breakdown
+      "ai_upate": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
 
-### 1. Initialize the OpenSearch client
+      "metrics": {
+        "type": "nested",
+        "properties": {
+          "name": { "type": "text" },
+          "value": { "type": "float" },
+          "note": { "type": "text" },
+          "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
+        }
+      },
 
-Connect to the OpenSearch cluster using authenticated credentials. In a development environment, this might point to localhost, but in production it should use secure endpoints.
+      "schema_version": { "type": "integer" },
+      "tags": { "type": "text" },
+      "ai_model": { "type": "keyword" },
+      "reviewed_by": { "type": "text" },
+      "review_status": { "type": "keyword" },
 
----
+      "step_count": { "type": "integer" },
+      "token_count": { "type": "integer" },
 
-### 2. Define Source and Backup Names
-
-A backup index is given a timestamped name, such as `soft_string_backup_20250403_135523`. This ensures that backups are easy to track chronologically and roll back to if needed.
-
-We also define a logical alias name, such as `soft_string_current`, which always points to the current “active” version of the index. This alias acts as a stable access point for read and write operations.
-
----
-
-### 3. Copy Settings and Mappings from the Source Index
-
-We retrieve the original index’s mapping (data schema) and critical index settings like shard count, replica count, and the field count limit. These are used to create a new index that matches the structure of the source.
-
-This step ensures structural compatibility between the source index and the backup.
-
----
-
-### 4. Create the New Backup Index
-
-A new index is created using the copied settings and mappings. This empty index will receive the data copied from the source.
-
----
-
-### 5. Reindex Data from the Source Index
-
-Using the reindex API, all documents from the original index are copied into the new backup index. This process duplicates the data without modifying the original source.
-
-The reindexing is executed as a server-side operation, which ensures that large datasets can be transferred efficiently.
-
----
-
-### 6. Update the Alias to Point to the Backup
-
-This step is key for version control. If the alias already exists and points to an older index, it is first removed. Then the alias is added to point to the new backup index.
-
-The alias can then be used by applications, scripts, or team members as the canonical reference. All read and write operations will go through this alias, which can be redirected at any time to a different index version.
-
-To ensure robustness, the code uses a try/except block to handle cases where the alias does not yet exist (such as during first-time setup).
-
----
-
-## Why This Is Useful for Your Team
-
-| Benefit                 | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
-| Safe editing            | Users modify documents via the alias, which points to the current backup.   |
-| Rollback support        | If an error is introduced, simply reassign the alias to a previous version. |
-| Immutable backups       | Backups can be made read-only to preserve data integrity.                   |
-| Dev/test environments   | A clone of the index can be used for testing changes before deployment.      |
-| Audit trail             | Timestamped backups serve as historical records of the data state.          |
-
----
-
-## Summary
-
-This pattern provides a clean, safe, and scalable way to manage OpenSearch indices. Backups protect your data history, and aliases provide a stable access point that can be redirected as needed.
-
-By separating index access from index identity, teams gain confidence, flexibility, and traceability in their data workflows.
+      "source_pipeline": { "type": "keyword" },
+      "ingest_time": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
+    }
+  }
+}
