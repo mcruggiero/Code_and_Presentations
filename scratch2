@@ -1,12 +1,12 @@
-query_text = "ship"
-
-os_client.search(index="main_index", body={
+# Clean base query with "ship"
+query_simple = "ship"
+result_simple = os_client.search(index="main_index", body={
     "query": {
         "multi_match": {
-            "query": query_text,
+            "query": query_simple,
             "fields": ["test_case_name^2"],
             "fuzziness": "AUTO",
-            "operator": "or",  # less strict to widen results
+            "operator": "and",
             "type": "best_fields"
         }
     },
@@ -14,15 +14,15 @@ os_client.search(index="main_index", body={
     "_source": ["test_case_name"]
 })
 
-query_text = "sh[i(p)++"
-
-os_client.search(index="main_index", body={
+# Longer query with "shipping"
+query_longer = "shipping"
+result_longer = os_client.search(index="main_index", body={
     "query": {
         "multi_match": {
-            "query": query_text,
+            "query": query_longer,
             "fields": ["test_case_name^2"],
             "fuzziness": "AUTO",
-            "operator": "or",
+            "operator": "and",
             "type": "best_fields"
         }
     },
@@ -30,17 +30,5 @@ os_client.search(index="main_index", body={
     "_source": ["test_case_name"]
 })
 
-### Explanation:
-
-- The clean query `"ship"` matches many test cases like `"TC_PTS_Process Outbound Shipping"`, `"Shipping Manifest"`, etc.
-- The messy query `"sh[i(p)++"` gets tokenized into a garbage string that either:
-  - Doesn’t resemble any indexed tokens
-  - Exceeds allowed edit distance for `fuzziness: AUTO`
-  - Fails token normalization (non-alphabetic characters)
-
-So ironically, a *simpler query* can be *more powerful*, because:
-- It's cleanly tokenized
-- Has shorter edit distance to real terms
-- Benefits more from **partial** matches across a wider surface
-
-Try **fuzziness: 2** or simpler tokens when you want to catch more with shorter queries.
+print(f"Query: 'ship' -> Total Hits: {result_simple['hits']['total']['value']}")
+print(f"Query: 'shipping' -> Total Hits: {result_longer['hits']['total']['value']}")
