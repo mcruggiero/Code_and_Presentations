@@ -1,5 +1,82 @@
-# List all aliases and their corresponding indices
-aliases = os_client.indices.get_alias()
-for index_name, data in aliases.items():
-    for alias in data.get("aliases", {}):
-        print(f"Index: {index_name} ↔ Alias: {alias}")
+time_format = '%Y-%m-%d'
+start_time = datetime.now()
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore") # There is an openxl warning I could give a damn about. 
+
+    sheets_dict = {}
+    counter = 0
+
+    for key, value in xls_dict.items():
+
+        entry = copy.deepcopy(value)
+        path = entry["path"]
+        
+        try:
+            xl = pd.ExcelFile(path)
+            workbook = openpyxl.load_workbook(path)
+        except Exception as e:
+            print(e)
+            pass
+
+        for sheet_num, sheet_name in enumerate(xl.sheet_names):
+            try:
+
+                pandas_data =               xl.parse(sheet_name).fillna("")
+                entry["sheet_name"] =       sheet_name
+                entry["cols_in_sheet"] =    list(pandas_data.columns)
+                entry["pandas_data"] =      pandas_data
+                entry["creator"] =          workbook.properties.creator
+                entry["last_modified_by"] = workbook.properties.lastModifiedBy
+                entry["created"] =          workbook.properties.created
+                entry["modified"] =         workbook.properties.modified
+                entry["title"] =            workbook.properties.title
+                entry["subject"] =          workbook.properties.subject
+                entry["keywords"] =         workbook.properties.keywords
+                entry["description"] =      workbook.properties.description
+                entry["category"] =         workbook.properties.category
+
+                # This is the easiest way I can tell if something has an ICT value in it
+                entry["itc-3"] =            1 if "itc3" in path.lower().replace("-","") else 0
+                entry["itc-2"] =            1 if "itc2" in path.lower().replace("-","") else 0
+                entry["itc-1"] =            1 if "itc1" in path.lower().replace("-","") else 0
+                entry["type_count"] =       entry["itc-3"] + entry["itc-2"] + entry["itc-1"]
+                entry["version"] =          version_title(pandas_data)
+
+                # Test Case Name, Bob requested this
+                entry["test_case_name"] =   pandas_data.iloc[0,0]
+
+                entry["step_json"] =        step_json_maker(pandas_data)
+                entry["os_index"] =         base64.urlsafe_b64encode(f'Originally in Pipeline Date: {go_time}\nPath: {path}\nSheet #: {sheet_name}_{sheet_num}'.encode()).decode()
+                
+                # Other Injest Information
+                entry['information'] = ''
+                entry['other'] = ''
+                entry['clarity_sequence'] = 0
+                entry['accuracy'] = 0
+                entry['actionability'] = 0
+                entry['scores'] = 0
+                entry['ai_upate'] = datetime.today().strftime(time_format)
+                entry['metrics'] = []
+                entry['schema_version'] = 0
+                entry['tags'] = ""
+                entry['ai_model'] = "soft prompt second build"
+                entry["reviewed_by"] = "Auto Generated"
+                entry["review_status"] = "unreviewed"
+                entry["step_count"] = 0
+                entry["token_count"] = 0
+                entry["source_pipeline"] = ""
+                entry["ingest_time"] = datetime.today().strftime(time_format)
+
+                sheets_dict[counter] = entry
+                counter += 1
+            
+            except Exception as e:
+                # There are a lot of little wierd sheets in these sub groupings, if there is an error, I just will drop the sheet
+                pass
+            
+        if key % 100 == 0:
+            print(f"{key:10}{len(sheets_dict):10}\t{sheet_name}_{sheet_num}")
+            
+end_time = datetime.now()
+print(f"Complete Sheet Parsing Time {end_time - start_time}")
