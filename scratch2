@@ -1,14 +1,27 @@
 os_client.search(index="main_index", body={
     "query": {
-        "nested": {
-            "path": "ai_json",
-            "query": {
-                "bool": {
-                    "must": [
-                        { "match": { "ai_json.Step Number": 1 } }
-                    ]
+        "bool": {
+            "must": [
+                {
+                    "nested": {
+                        "path": "ai_json",
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    { "match": { "ai_json.Step Number": 1 } }
+                                ]
+                            }
+                        }
+                    }
+                },
+                {
+                    "multi_match": {
+                        "query": "ship",
+                        "fields": ["test_case_name^2"],
+                        "type": "phrase_prefix"
+                    }
                 }
-            }
+            ]
         }
     },
     "size": 5,
