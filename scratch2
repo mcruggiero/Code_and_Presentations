@@ -1,6 +1,6 @@
-{'os_index': 'T3JpZ2luYWxseSBpbiBQaXBlbGluZSBEYXRlOiAyMDI1LTA0LTA3IDAyOjE4OjEyLjU4ODg5OCBQYXRoOiAvdXMtZ2JsLTFsbXgtZXJwLWV4dC1laWgvMi4gIFN0cmluZyBUZXN0IFJlcG9zaXRvcnkvRmluYW5jZS9TVFJfRklfQ0FfVGltZSBBcHByb3ZhbCBhbmQgQ29ycmVjdGlvbl9JVEMyLnhsc3g=',
- 'generated': datetime.datetime(2025, 4, 7, 2, 18, 12, 588898),
- 'path': '/home/jovyan/silver-iguana/data/us-gbl-1lmx-erp-ext-eih/2.  String Test Repository/Finance/STR_FI_CA_Time Approval and Correction_ITC2.xlsx',
- 'name': 'STR_FI_CA_Time Approval and Correction_ITC2.xlsx',
+{'generated': datetime.datetime(2025, 4, 7, 23, 18, 6, 149845),
+ 'path': 'test-refinery-data/1LMX ERP Portfolio Test Script Repository.xlsx',
+ 'name': '1LMX ERP Portfolio Test Script Repository.xlsx',
  'extension': 'xlsx',
- 'portfolio': 'us-gbl-1lmx-erp-ext-eih'}
+ 'portfolio': 'test-refinery-data',
+ 'version': 0}
