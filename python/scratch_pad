@@ -55,8 +55,9 @@ with warnings.catch_warnings():
                 entry["test_case_name"] =   pandas_data.iloc[0,0]
 
                 entry["step_json"] =        step_json_maker(pandas_data)
-                entry["os_index"] =         base64.urlsafe_b64encode(f'Originally in Pipeline Date: {go_time}\nPath: {path}\nSheet #: {sheet_name}_{sheet_num}'.encode()).decode()
-                
+                entry["ver"]      =         base64.urlsafe_b64encode(f'Originally in Pipeline Date: {go_time}\nPath: {path}\nSheet #: {sheet_name}_{sheet_num}'.encode()).decode()
+                entry["os_index"] = entry["ver"] + "_v000"      
+
                 # Other Injest Information
                 entry['information'] = ''
                 entry['other'] = ''
