@@ -10,12 +10,13 @@ with warnings.catch_warnings():
     for key, value in xls_dict.items():
         entry = copy.deepcopy(value)
         path = entry["path"]
+        load_path = "/home/jovyan/silver-iguana/data/" + path
 
         try:
-            xl = pd.ExcelFile(path)
-            workbook = openpyxl.load_workbook(path)
+            xl = pd.ExcelFile(load_path)
+            workbook = openpyxl.load_workbook(load_path)
         except Exception as e:
-            print(f"Failed to load {path}: {e}")
+            print(f"Failed to load {load_path}: {e}")
             continue
 
         for sheet_num, sheet_name in enumerate(xl.sheet_names):
@@ -84,12 +85,12 @@ with warnings.catch_warnings():
                 sheets_dict[counter] = entry
                 counter += 1
 
-                # Send to OpenSearch alias index
-                os_client.index(
-                    index="hackaton_write",
-                    id=entry["os_index"],
-                    body=entry
-                )
+                # # Send to OpenSearch alias index
+                # os_client.index(
+                #     index="hackaton_write",
+                #     id=entry["os_index"],
+                #     body=entry
+                # )
 
             except Exception as e:
                 print(f"Skipping sheet '{sheet_name}' in '{path}': {e}")
