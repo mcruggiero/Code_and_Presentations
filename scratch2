@@ -23,8 +23,8 @@ with warnings.catch_warnings():
             try:
                 pandas_data = xl.parse(sheet_name).fillna("")
                 entry["sheet_name"] = sheet_name
-                entry["cols_in_sheet"] = list(pandas_data.columns)
-                entry["pandas_data"] = pandas_data
+                #entry["cols_in_sheet"] = list(pandas_data.columns)
+                #entry["pandas_data"] = pandas_data
 
                 # Document metadata from workbook properties
                 props = workbook.properties
@@ -46,7 +46,7 @@ with warnings.catch_warnings():
                 entry["type_count"] = entry["itc-3"] + entry["itc-2"] + entry["itc-1"]
 
                 # Assign version number
-                entry["version"] = version_title(pandas_data)
+                entry["tags"] = version_tags(pandas_data)
 
                 # Optional title for display/search
                 entry["test_case_name"] = pandas_data.iloc[0, 0]
@@ -85,18 +85,18 @@ with warnings.catch_warnings():
                 sheets_dict[counter] = entry
                 counter += 1
 
-                # # Send to OpenSearch alias index
-                # os_client.index(
-                #     index="hackaton_write",
-                #     id=entry["os_index"],
-                #     body=entry
-                # )
+                # Send to OpenSearch alias index
+                os_client.index(
+                    index="hackaton_write",
+                    id=entry["os_index"],
+                    body=entry
+                )
 
             except Exception as e:
                 print(f"Skipping sheet '{sheet_name}' in '{path}': {e}")
                 continue
 
-        if key % 100 == 0:
+        if key % 25 == 0:
             print(f"{key:10}{len(sheets_dict):10}\t{sheet_name}_{sheet_num}")
 
 end_time = datetime.now()
