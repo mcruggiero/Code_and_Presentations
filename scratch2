@@ -1,35 +1,90 @@
-from datetime import datetime
+# 🔍 Fuzzy Searching on `test_case_name` in OpenSearch
 
-def generate_ai_json_from_step_json(step_json):
-    # Dummy function – replace with real enrichment logic
-    return [{"step": s, "ai_notes": "Auto enriched"} for s in step_json]
+This notebook demonstrates **5 different ways to search fuzzily** against the `test_case_name` field. The field is mapped as `"text"`, which means it supports:
+- `match` queries (full-text search)
+- `fuzzy` queries (typo-tolerant search)
+- `match_phrase` and `match_phrase_prefix`
+- `query_string` (search bar style)
 
-for hit in all_v000_docs:
-    doc_id = hit["_id"]
-    source = hit["_source"]
+We’re searching against the index alias `main_index`.
 
-    enriched_id = doc_id.replace("_v000", "_v001")
+Each example uses a **slightly different approach** to help find similar results — even when misspellings or partial phrases are involved.
 
-    # Skip if enriched version already exists
-    if client.exists(index="hackaton_write", id=enriched_id):
-        print(f"⏩ Skipping existing: {enriched_id}")
-        continue
+os_client.search(index="main_index", body={
+    "query": {
+        "match": {
+            "test_case_name": "Setlement Rules"
+        }
+    }
+})
 
-    if "step_json" not in source or not source["step_json"]:
-        print(f"⚠️ Missing step_json in {doc_id}")
-        continue
+# Explanation:
+This is the most basic fuzzy-like search. It uses OpenSearch’s built-in analyzer to break the field into tokens and match on them.
+It handles:
+- Lowercase conversion
+- Simple typos
+- Token overlap
 
-    try:
-        new_doc = source.copy()
-        new_doc["ai_json"] = generate_ai_json_from_step_json(source["step_json"])
-        new_doc["ai_upate"] = datetime.today().strftime("%Y-%m-%d")
-        new_doc["ai_model"] = "soft prompt second build"
-        new_doc["review_status"] = "unreviewed"
-        new_doc["os_index"] = enriched_id
-        new_doc["ver"] = enriched_id  # optional
+os_client.search(index="main_index", body={
+    "query": {
+        "fuzzy": {
+            "test_case_name": {
+                "value": "Setlement",
+                "fuzziness": "AUTO"
+            }
+        }
+    }
+})
 
-        client.index(index="hackaton_write", id=enriched_id, body=new_doc)
-        print(f"✅ Enriched and indexed: {enriched_id}")
+# Explanation:
+This query uses Levenshtein edit distance to allow spelling mistakes.
+- `fuzziness: "AUTO"` allows ~2 character edits
+- Best for short queries or single words
 
-    except Exception as e:
-        print(f"❌ Failed to enrich {doc_id}: {e}")
+
+os_client.search(index="main_index", body={
+    "query": {
+        "match_phrase": {
+            "test_case_name": "Create Settlement Rules"
+        }
+    }
+})
+
+# Explanation:
+This requires the phrase to occur in the same order.
+- Good when you know the phrase almost exactly
+- Not tolerant of major typos unless you use `slop`
+
+os_client.search(index="main_index", body={
+    "query": {
+        "match_phrase_prefix": {
+            "test_case_name": {
+                "query": "Create Settl",
+                "max_expansions": 10
+            }
+        }
+    }
+})
+
+# Explanation:
+This works like an autocomplete search.
+- Finds entries that **start with a phrase**
+- Use this for typing-in-progress style searches
+
+os_client.search(index="main_index", body={
+    "query": {
+        "query_string": {
+            "query": "Setl* OR Rules",
+            "default_field": "test_case_name"
+        }
+    }
+})
+
+# Explanation:
+This uses Lucene query syntax to support:
+- Wildcards (`*`)
+- Logical operators (`OR`, `AND`)
+- Prefix matching
+It’s powerful but must be used carefully.
+
+
