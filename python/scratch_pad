@@ -1,4 +1,3 @@
-
 mapping = {
   "settings": {
     "number_of_shards": 5,
@@ -16,7 +15,7 @@ mapping = {
       "portfolio": { "type": "keyword" },
       "sheet_name": { "type": "keyword" },
       "sheet_name_cleaned": { "type": "keyword" },
-      "version": { "type": "keyword" },
+      "version": { "type": "integer" },
       "test_case_name": { "type": "text" },
       "creator": {
         "type": "text",
