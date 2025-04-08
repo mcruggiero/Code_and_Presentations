@@ -1,115 +1,51 @@
-def process_single_excel_entry(entry_dict):
-    import pandas as pd
-    import openpyxl
-    import base64
-    import os
-    from datetime import datetime
+from opensearchpy import OpenSearch
 
-    # Constants and helpers (can be globally defined if preferred)
-    index_name = "hackaton_write"
-    time_format = "%Y-%m-%d"
-    base_path = "/home/jovyan/silver-iguana/data/"
-    go_time = datetime.today().strftime(time_format)
+client = OpenSearch(...)  # your OS setup
+index_name = "hackaton_write"
 
-    # Step tag and step parser logic (inject your real ones here)
-    def version_tags(df):
-        return ""
+scroll = client.search(
+    index=index_name,
+    scroll="2m",
+    size=500,
+    _source=["step_json", "ai_json"],
+    body={"query": {"match_all": {}}}
+)
+scroll_id = scroll["_scroll_id"]
+hits = scroll["hits"]["hits"]
 
-    def step_json_maker(df):
-        return []
+while hits:
+    for hit in hits:
+        doc_id = hit["_id"]
+        source = hit["_source"]
 
-    def sanitize_entry(entry):
-        for k, v in entry.items():
-            if isinstance(v, (pd.Timestamp, datetime)):
-                entry[k] = v.strftime(time_format)
-            elif isinstance(v, float) and (pd.isna(v) or v != v):
-                entry[k] = None
-        return entry
-
-    # Try loading the Excel file
-    path = entry_dict["path"]
-    full_path = os.path.join(base_path, path)
-
-    try:
-        xl = pd.ExcelFile(full_path)
-        workbook = openpyxl.load_workbook(full_path)
-    except Exception as e:
-        print(f"❌ Failed to load workbook: {full_path}\nError: {e}")
-        return {}
-
-    sheets_dict = {}
-    for sheet_num, sheet_name in enumerate(xl.sheet_names):
-        try:
-            df = xl.parse(sheet_name).fillna("")
-            entry = dict(entry_dict)  # shallow copy
-            entry["sheet_name"] = sheet_name
-
-            # Metadata from workbook
-            props = workbook.properties
-            entry["creator"] = props.creator
-            entry["last_modified_by"] = props.lastModifiedBy
-            entry["created"] = props.created
-            entry["modified"] = props.modified
-            entry["title"] = props.title
-            entry["subject"] = props.subject
-            entry["keywords"] = props.keywords
-            entry["description"] = props.description
-            entry["category"] = props.category
-
-            # Classify
-            path_clean = path.lower().replace("-", "")
-            entry["itc-3"] = int("itc3" in path_clean)
-            entry["itc-2"] = int("itc2" in path_clean)
-            entry["itc-1"] = int("itc1" in path_clean)
-            entry["type_count"] = entry["itc-3"] + entry["itc-2"] + entry["itc-1"]
-
-            # Add fields
-            entry["tags"] = version_tags(df)
-            entry["test_case_name"] = df.iloc[0, 0]
-            entry["step_json"] = step_json_maker(df)
-
-            os_base = base64.urlsafe_b64encode(
-                f"Originally in Pipeline Date: {go_time}\nPath: {path}\nSheet #: {sheet_name}_{sheet_num}".encode()
-            ).decode()
-            entry["ver"] = os_base
-            entry["os_index"] = f"{os_base}_v000"
-
-            # Default metadata
-            entry.update({
-                "information": "",
-                "other": "",
-                "clarity_sequence": 0,
-                "accuracy": 0,
-                "actionability": 0,
-                "scores": 0,
-                "ai_upate": go_time,
-                "metrics": [],
-                "ai_json": [],
-                "schema_version": 0,
-                "tags": "",
-                "ai_model": "soft prompt second build",
-                "reviewed_by": "Auto Generated",
-                "review_status": "unreviewed",
-                "step_count": 0,
-                "token_count": 0,
-                "source_pipeline": "",
-                "ingest_time": go_time
-            })
-
-            entry = sanitize_entry(entry)
-
-            # Push to OpenSearch
-            os_client.index(
-                index=index_name,
-                id=entry["os_index"],
-                body=entry
-            )
-
-            sheets_dict[sheet_num] = entry
-            print(f"✅ Indexed sheet: {sheet_name} as {entry['os_index']}")
-
-        except Exception as e:
-            print(f"⚠️ Skipping sheet '{sheet_name}': {e}")
+        if not doc_id.endswith("_v000"):
             continue
 
-    return sheets_dict
+        # Check for _v001
+        enriched_id = doc_id.replace("_v000", "_v001")
+        if client.exists(index=index_name, id=enriched_id):
+            print(f"Already enriched: {doc_id}")
+            continue
+
+        # Ensure step_json is present
+        if "step_json" not in source or not source["step_json"]:
+            print(f"Missing step_json in {doc_id}")
+            continue
+
+        # Enrich
+        new_doc = source.copy()
+        new_doc["ai_json"] = generate_ai_json_from_step_json(source["step_json"])
+        new_doc["os_index"] = enriched_id
+        new_doc["review_status"] = "unreviewed"
+        new_doc["ai_upate"] = datetime.today().strftime("%Y-%m-%d")
+
+        try:
+            client.index(index=index_name, id=enriched_id, body=new_doc)
+            print(f"✅ Enriched and added: {enriched_id}")
+        except Exception as e:
+            print(f"❌ Error writing {enriched_id}: {e}")
+
+    # Scroll to next batch
+    scroll = client.scroll(scroll_id=scroll_id, scroll="2m")
+    scroll_id = scroll["_scroll_id"]
+    hits
