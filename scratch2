@@ -1,9 +1,18 @@
-from elasticsearch import Elasticsearch, helpers
-import hashlib
-import re
+# 🔥 Step 0: Delete all documents from dev_index
+print(f"⚠️ Deleting all documents from {NEW_ALIAS}...")
 
-# === Connect to your OpenSearch / Elasticsearch cluster ===
-os_client = Elasticsearch("http://localhost:9200")
+os_client.delete_by_query(
+    index=NEW_ALIAS,
+    body={
+        "query": {
+            "match_all": {}
+        }
+    },
+    conflicts="proceed",  # allows deletes even if conflicts exist
+    refresh=True
+)
+
+print(f"✅ All documents deleted from {NEW_ALIAS}")
 
 # === Constants ===
 OLD_ALIAS = "main_index"
