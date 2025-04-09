@@ -1,175 +1,58 @@
-# Index & alias names
-HIDDEN_INDEX = f".hacker_{go_time}"
-ALIAS_NAME = "main_index"
-POLICY_ID = "hackaton-no-delete"
+from elasticsearch import Elasticsearch, helpers
+import hashlib
 
-mapping = {
-    "settings": {
-        "number_of_shards": 5,
-        "number_of_replicas": 2,
-        "index.mapping.total_fields.limit": 10000
-    },
-    "mappings": {
-        "properties": {
+# === Connect to your OpenSearch / Elasticsearch cluster ===
+os_client = Elasticsearch("http://localhost:9200")
 
-            # === Unique Identifier & Versioning ===
-            "os_index": { "type": "keyword" },
-            "version": { "type": "integer" },
-            "change_log": { "type": "text" },
-            "ai_population": { "type": "boolean" },
+# === Constants ===
+OLD_ALIAS = "main_index"
+NEW_ALIAS = "dev_index"
+SCROLL_TIME = "2m"
+BATCH_SIZE = 500
 
-            # === File Metadata ===
-            "name": { "type": "keyword" },
-            "path": { "type": "text" },
-            "extension": { "type": "keyword" },
-            "portfolio": { "type": "keyword" },
-            "sheet_name": { "type": "keyword" },
-            "sheet_name_cleaned": { "type": "keyword" },
-            "source_pipeline": { "type": "keyword" },
+# === Step 1: Scroll all documents from old alias ===
+results = []
+scroll = os_client.search(
+    index=OLD_ALIAS,
+    scroll=SCROLL_TIME,
+    size=BATCH_SIZE,
+    body={"query": {"match_all": {}}}
+)
 
-            # === Test Case Info ===
-            "test_case_name": { "type": "text" },
-            "itc-3": { "type": "integer" },
-            "itc-2": { "type": "integer" },
-            "itc-1": { "type": "integer" },
-            "type_count": { "type": "integer" },
+scroll_id = scroll["_scroll_id"]
+hits = scroll["hits"]["hits"]
+results.extend(hits)
 
-            # === Authorship & Review Metadata ===
-            "creator": {
-                "type": "text",
-                "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
-            },
-            "ver": {
-                "type": "text",
-                "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
-            },
-            "reviewed_by": { "type": "text" },
-            "review_status": { "type": "keyword" },
+while len(hits) > 0:
+    scroll = os_client.scroll(scroll_id=scroll_id, scroll=SCROLL_TIME)
+    scroll_id = scroll["_scroll_id"]
+    hits = scroll["hits"]["hits"]
+    results.extend(hits)
 
-            # === Date Tracking ===
-            "created": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-            "modified": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-            "generated": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-            "ai_upate": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
-            "ingest_time": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+print(f"Total documents to reindex: {len(results)}")
 
-            # === Descriptive Metadata ===
-            "subject": { "type": "text" },
-            "keywords": { "type": "text" },
-            "description": { "type": "text" },
-            "category": { "type": "text" },
-            "tags": { "type": "text" },
-            "information": { "type": "text" },
-            "other": { "type": "text" },
+# === Step 2: Reindex with custom _id ===
+actions = []
 
-            # === Scoring Fields ===
-            "clarity_sequence": { "type": "float" },
-            "accuracy": { "type": "float" },
-            "actionability": { "type": "float" },
-            "scores": { "type": "float" },
+for doc in results:
+    source = doc["_source"]
 
-            # === Token and Step Counts ===
-            "step_count": { "type": "integer" },
-            "token_count": { "type": "integer" },
+    try:
+        # Build custom _id string and encode with SHA256 to avoid newline or special char issues
+        raw_id = f"{source['portfolio']}\n{source['path']}\n{source['test_case_name']}"
+        new_id = hashlib.sha256(raw_id.encode()).hexdigest()
 
-            # === Schema Metadata ===
-            "schema_version": { "type": "integer" },
-            "ai_model": { "type": "keyword" },
+        # Build reindex action
+        actions.append({
+            "_index": NEW_ALIAS,
+            "_id": new_id,
+            "_source": source
+        })
 
-            # === Human-Written Steps ===
-            "step_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": { "type": "integer" },
-                    "Step Description": { "type": "text" },
-                    "Step Expected Result": { "type": "text" }
-                }
-            },
+    except KeyError as e:
+        print(f"⚠️ Skipping doc due to missing key: {e}")
+        continue
 
-            # === Searchable Functional Role (NEW) ===
-            "Functional Role": { "type": "text" },
-
-            # === AI-Generated Enrichment ===
-            "ai_json": {
-                "type": "nested",
-                "properties": {
-                    "Step Number": { "type": "integer" },
-                    "Step Description": { "type": "text" },
-                    "Step Expected Result": { "type": "text" },
-                    "Details": {
-                        "type": "object",
-                        "properties": {
-                            "SAP T-code": { "type": "text" },
-                            "Field Instructions": {
-                                "type": "object",
-                                "properties": {
-                                    "Field": { "type": "text" },
-                                    "Value": { "type": "text" }
-                                }
-                            }
-                        }
-                    },
-                    "Detailed Instructions": {
-                        "type": "object",
-                        "properties": {
-                            "Action": { "type": "text" },
-                            "Field": { "type": "text" },
-                            "Value": { "type": "text" }
-                        }
-                    }
-                }
-            },
-
-            # === FB JSON Enrichment (NEW) ===
-            "fb_json": {
-                "type": "nested",
-                "properties": {
-                    "Screen Transactions": { "type": "keyword" },
-                    "Dev Object ID": { "type": "keyword" },
-                    "Other": { "type": "keyword" }
-                }
-            },
-
-            # === ZEB JSON Enrichment (NEW) ===
-            "zeb_json": {
-                "type": "nested",
-                "properties": {
-                    "Test Case Type": { "type": "keyword" },
-                    "Objective": { "type": "keyword" },
-                    "Pre Condition": { "type": "keyword" },
-                    "Test Data": { "type": "keyword" },
-                    "L4_L3_L2": { "type": "keyword" },
-                    "Doors ID": { "type": "keyword" },
-                    "Itc Cycle": { "type": "keyword" },
-                    "Other": { "type": "keyword" }
-                }
-            },
-
-            # === Metrics ===
-            "metrics": {
-                "type": "nested",
-                "properties": {
-                    "name": { "type": "text" },
-                    "value": { "type": "float" },
-                    "note": { "type": "text" },
-                    "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
-                }
-            }
-        }
-    }
-}
-
-# Step 2: Create hidden index
-if not os_client.indices.exists(index=HIDDEN_INDEX):
-    os_client.indices.create(index=HIDDEN_INDEX, body=mapping)
-    print(f"✅ Created index: {HIDDEN_INDEX}")
-else:
-    print(f"ℹ️ Index {HIDDEN_INDEX} already exists.")
-
-# Step 3: Create alias for safer writes
-os_client.indices.update_aliases(body={
-    "actions": [
-        { "add": { "index": HIDDEN_INDEX, "alias": ALIAS_NAME } }
-    ]
-})
-print(f"🔗 Created alias: {ALIAS_NAME} -> {HIDDEN_INDEX}")
+# === Step 3: Bulk insert into dev_index ===
+helpers.bulk(os_client, actions)
+print(f"✅ Reindexed {len(actions)} docs to {NEW_ALIAS} with new IDs.")
