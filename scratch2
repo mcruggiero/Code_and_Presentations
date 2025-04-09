@@ -1,29 +1,150 @@
-os_client.search(index="main_index", body={
-    "query": {
-        "bool": {
-            "must": [
-                {
-                    "nested": {
-                        "path": "ai_json",
-                        "query": {
-                            "bool": {
-                                "must": [
-                                    { "match": { "ai_json.Step Number": 1 } }
-                                ]
+# Index & alias names
+HIDDEN_INDEX = f".hacker_{go_time}"
+ALIAS_NAME = f"main_index"
+POLICY_ID = "hackaton-no-delete"
+
+mapping = {
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 2,
+        "index.mapping.total_fields.limit": 10000
+    },
+    "mappings": {
+        "properties": {
+
+            # === Unique Identifier & Versioning ===
+            "os_index": { "type": "keyword" },                  # Base identifier for a test case (stable across versions)
+            "version": { "type": "integer" },                   # Numeric version counter
+            "change_log": { "type": "text" },                   # Human-readable note about changes in this version
+            "ai_population": { "type": "boolean" },             # True if document was populated by AI
+
+            # === File Metadata ===
+            "name": { "type": "keyword" },                      # File name
+            "path": { "type": "text" },                         # Full path to file
+            "extension": { "type": "keyword" },                 # File extension (e.g., 'xlsx')
+            "portfolio": { "type": "keyword" },                 # System/project name
+            "sheet_name": { "type": "keyword" },                # Raw sheet name
+            "sheet_name_cleaned": { "type": "keyword" },        # Normalized sheet name for deduplication
+            "source_pipeline": { "type": "keyword" },           # Source pipeline identifier (ETL)
+
+            # === Test Case Info ===
+            "test_case_name": { "type": "text" },               # Human-readable test case title
+            "itc-3": { "type": "integer" },
+            "itc-2": { "type": "integer" },
+            "itc-1": { "type": "integer" },
+            "type_count": { "type": "integer" },                # Number of type tags or flags assigned
+
+            # === Authorship & Review Metadata ===
+            "creator": {
+                "type": "text",
+                "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+            },
+            "ver": {
+                "type": "text",
+                "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+            },
+            "reviewed_by": { "type": "text" },
+            "review_status": { "type": "keyword" },
+
+            # === Date Tracking ===
+            "created": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "modified": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "generated": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "ai_upate": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "ingest_time": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+
+            # === Descriptive Metadata ===
+            "subject": { "type": "text" },
+            "keywords": { "type": "text" },
+            "description": { "type": "text" },
+            "category": { "type": "text" },
+            "tags": { "type": "text" },
+            "information": { "type": "text" },
+            "other": { "type": "text" },
+
+            # === Scoring Fields ===
+            "clarity_sequence": { "type": "float" },            # Model-assigned clarity or ordering score
+            "accuracy": { "type": "float" },
+            "actionability": { "type": "float" },
+            "scores": { "type": "float" },                      # Composite score (optional)
+
+            # === Token and Step Counts ===
+            "step_count": { "type": "integer" },
+            "token_count": { "type": "integer" },
+
+            # === Schema Metadata ===
+            "schema_version": { "type": "integer" },            # Internal version of document schema
+            "ai_model": { "type": "keyword" },                  # Name of the AI model used (e.g., GPT-4)
+
+            # === Human-Written Steps ===
+            "step_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": { "type": "integer" },
+                    "Step Description": { "type": "text" },
+                    "Step Expected Result": { "type": "text" }
+                }
+            },
+            
+            ## TODO == ADD LATER
+            # "Functional Role": {"type": "text"}
+
+            # === AI-Generated Enrichment ===
+            "ai_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": { "type": "integer" },
+                    "Step Description": { "type": "text" },
+                    "Step Expected Result": { "type": "text" },
+                    "Details": {
+                        "type": "object",
+                        "properties": {
+                            "SAP T-code": { "type": "text" },
+                            "Field Instructions": {
+                                "type": "object",
+                                "properties": {
+                                    "Field": { "type": "text" },
+                                    "Value": { "type": "text" }
+                                }
                             }
                         }
-                    }
-                },
-                {
-                    "multi_match": {
-                        "query": "ship",
-                        "fields": ["test_case_name^2"],
-                        "type": "phrase_prefix"
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "properties": {
+                            "Action": { "type": "text" },
+                            "Field": { "type": "text" },
+                            "Value": { "type": "text" }
+                        }
                     }
                 }
-            ]
+            },
+
+            # === Metric Snapshots / Analytics ===
+            "metrics": {
+                "type": "nested",
+                "properties": {
+                    "name": { "type": "text" },
+                    "value": { "type": "float" },
+                    "note": { "type": "text" },
+                    "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
+                }
+            }
         }
-    },
-    "size": 5,
-    "_source": ["test_case_name", "ai_json"]
+    }
+}
+
+# Step 2: Create hidden index
+if not os_client.indices.exists(index=HIDDEN_INDEX):
+    os_client.indices.create(index=HIDDEN_INDEX, body=mapping)
+    print(f"Created index: {HIDDEN_INDEX}")
+else:
+    print(f"Index {HIDDEN_INDEX} already exists.")
+    
+# Step 3: Create alias for safer writes
+os_client.indices.update_aliases(body={
+    "actions": [
+        { "add": { "index": HIDDEN_INDEX, "alias": ALIAS_NAME } }
+    ]
 })
+print(f"Created alias: {ALIAS_NAME} -> {HIDDEN_INDEX}")
