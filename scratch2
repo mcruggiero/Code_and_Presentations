@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch, helpers
 import hashlib
+import re
 
 # === Connect to your OpenSearch / Elasticsearch cluster ===
 os_client = Elasticsearch("http://localhost:9200")
@@ -31,15 +32,19 @@ while len(hits) > 0:
 
 print(f"Total documents to reindex: {len(results)}")
 
-# === Step 2: Reindex with custom _id ===
+# === Step 2: Reindex with custom _id while preserving suffix like _v000 ===
 actions = []
 
 for doc in results:
     source = doc["_source"]
 
     try:
-        # Build custom _id string and encode with SHA256 to avoid newline or special char issues
-        raw_id = f"{source['portfolio']}\n{source['path']}\n{source['test_case_name']}"
+        # Extract version suffix (_v000, _v001...) from existing os_index field
+        version_match = re.search(r"_v\d{3}$", source.get("os_index", ""))
+        suffix = version_match.group(0) if version_match else "_v000"
+
+        # Build the new ID from portfolio, path, test_case_name + version suffix
+        raw_id = f"{source['portfolio']}\n{source['path']}\n{source['test_case_name']}{suffix}"
         new_id = hashlib.sha256(raw_id.encode()).hexdigest()
 
         # Build reindex action
@@ -55,4 +60,4 @@ for doc in results:
 
 # === Step 3: Bulk insert into dev_index ===
 helpers.bulk(os_client, actions)
-print(f"✅ Reindexed {len(actions)} docs to {NEW_ALIAS} with new IDs.")
+print(f"✅ Reindexed {len(actions)} docs to {NEW_ALIAS} with version-aware IDs.")
