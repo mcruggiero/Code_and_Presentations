@@ -1,74 +1,203 @@
-# === Constants ===
-OLD_ALIAS = "main_index"
-NEW_ALIAS = "dev_index"
-SCROLL_TIME = "2m"
-BATCH_SIZE = 500
-NAMESPACE = uuid.NAMESPACE_URL  # Use a stable namespace for consistent uuid5 generation
+# Index & alias names
+HIDDEN_INDEX = f".test_index"
+ALIAS_NAME = "test_index"
+POLICY_ID = "hackaton-no-delete"
 
-# Step 0: Delete all documents from dev_index
-print(f"Deleting all documents from {NEW_ALIAS}...")
-
-os_client.delete_by_query(
-    index=NEW_ALIAS,
-    body={
-        "query": {
-            "match_all": {}
-        }
+mapping = {
+    "settings": {
+        "number_of_shards": 5,
+        "number_of_replicas": 2,
     },
-    conflicts="proceed",
-    refresh=True
-)
+    "mappings": {
+        "properties": {
+            
+            ###
+            # === Unique Identifier & Versioning ===
+            # These data are populated after first crawl of Lake FS/ FocusBuild/ Zephyr
+            ###
+            "os_index": { "type": "keyword" },
+            "generated": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "path": { "type": "text" },
+            "name": { "type": "keyword" },
+            "extension": { "type": "keyword" },
+            "portfolio": { "type": "keyword" },
+            "version": { "type": "integer" },
 
-print(f"All documents deleted from {NEW_ALIAS}")
+            # === File Metadata ===
+            "change_log": { "type": "keyword" },
+            "sheet_name": { "type": "keyword" },
+            "sheet_name_cleaned": { "type": "keyword" },
+            "source_pipeline": { "type": "keyword" }, # I haven't been using this...maybe legacy it?
 
-# Step 1: Scroll all documents from main_index
-results = []
-scroll = os_client.search(
-    index=OLD_ALIAS,
-    scroll=SCROLL_TIME,
-    size=BATCH_SIZE,
-    body={"query": {"match_all": {}}}
-)
+            # === Test Case Info ===
+            "test_case_name": { "type": "text" },
+            "itc-3": { "type": "integer" },
+            "itc-2": { "type": "integer" },
+            "itc-1": { "type": "integer" },
+            "type_count": { "type": "integer" },
 
-scroll_id = scroll["_scroll_id"]
-hits = scroll["hits"]["hits"]
-results.extend(hits)
+            # === Authorship & Review Metadata ===
+            "creator": {
+                "type": "text",
+                "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+            },
+            "ver": {
+                "type": "text",
+                "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+            },
+            "reviewed_by": { "type": "text" },
+            "review_status": { "type": "keyword" },
 
-while len(hits) > 0:
-    scroll = os_client.scroll(scroll_id=scroll_id, scroll=SCROLL_TIME)
-    scroll_id = scroll["_scroll_id"]
-    hits = scroll["hits"]["hits"]
-    results.extend(hits)
+            # === Date Tracking ===
+            "created": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "modified": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "ai_upate": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
+            "ingest_time": { "type": "date", "format": "strict_date_optional_time||epoch_millis" },
 
-print(f"Total documents to reindex: {len(results)}")
+            # === Descriptive Metadata ===
+            "subject": { "type": "text" },
+            "keywords": { "type": "text" },
+            "description": { "type": "text" },
+            "category": { "type": "text" },
+            "tags": { "type": "text" },
+            "information": { "type": "text" },
+            "other": { "type": "text" },
 
-# Step 2: Reindex
-actions = []
+            # === Scoring Fields ===
+            "clarity_sequence": { "type": "float" },
+            "accuracy": { "type": "float" },
+            "actionability": { "type": "float" },
+            "scores": { "type": "float" },
 
-for doc in results:
-    source = doc["_source"]
+            # === Token and Step Counts ===
+            "step_count": { "type": "integer" },
+            "token_count": { "type": "integer" },
 
-    try:
-        version_match = re.search(r"_v\d{3}$", source.get("os_index", ""))
-        version_suffix = version_match.group(0) if version_match else "_v000"
-        
-        # Create a deterministic ID using path and sheet info
-        raw_string = f"{source['portfolio']}\n{source['path']}\n{source['test_case_name']}".encode()
-        os_base = base64.urlsafe_b64encode(raw_string).decode()
+            # === Schema Metadata ===
+            "schema_version": { "type": "integer" },
+            "ai_model": { "type": "keyword" },
+            
+            ###
+            # === Information Json ===
+            # This is some portfolio specific importing stuff
+            "info_json": {
+                "type": "nested",
+                "properties": {
+                    "Test Case Type": { "type": "test" }, # zep OK # Test Plan Test Classification
+                    "Objective": { "type": "text" }, # zep Objective # not in focus
+                    "Pre Condition": { "type": "keyword" }, # Precondition # not in focus
+                    "Test Data": { "type": "keyword" }, # zap Test Script (Step-by-Step) - Test Data # Evidence Attachment	
+                    'ITC Test Cycle(s) - Comma Separated:':  # In zep # MAP OUT ICT# form "TEST PLAN# <- Important
+                    "Other": { "type": "keyword" } # Chucking everything that is in the sheet here
+                }
+            },
+                    
+            ###
+            # == Legacy Items probably not needed anymore
+            "ai_population": { "type": "boolean" }, # Now a part of the even/odd _v system
+            "Functional Role": { "type": "text" }, # I have pulled this into the step_json, but I don't want to break anything
+            
+            "fb_json": { ## This information is getting chucked into a new "information" json
+                "type": "nested",
+                "properties": {
+                    "Screen Transactions": { "type": "keyword" },
+                    "Dev Object ID": { "type": "keyword" },
+                    "Other": { "type": "keyword" }
+                }
+            },
 
-        # Build raw ID string for deterministic UUID
-        new_id = f"{os_base}{version_suffix}"
+            "zeb_json": {
+                "type": "nested",
+                "properties": {
+                    "Test Case Type": { "type": "keyword" },
+                    "Objective": { "type": "keyword" },
+                    "Pre Condition": { "type": "keyword" },
+                    "Test Data": { "type": "keyword" },
+                    "L4_L3_L2": { "type": "keyword" },
+                    "Doors ID": { "type": "keyword" },
+                    "Itc Cycle": { "type": "keyword" },
+                    "Other": { "type": "keyword" }
+                }
+            },
+            # ^^^ Legacy Items probably not needed anymore
+            ###
+            
+            ###
+            # === Human-Written Steps (NEW) ===
+            # I have pulled a lot of stuff that might help inform the agent here.
+            "step_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": { "type": "integer" },
+                    "Step Description": { "type": "text" },
+                    "Step Expected Result": { "type": "text" },
+                    ### All of this stuff will have to get intdocued to the Ai
+                    "Functional Role": { "type": "text" },
+                    "Application": { "type": "text" },
+                    "Screen-Transaction": { "type": "text" },
+                    "Devolpment Object ID": { "type": "text" },
+                    "Instructions": { "type": "text" },
+                }
+            },
 
-        actions.append({
-            "_index": NEW_ALIAS,
-            "_id": new_id,
-            "_source": source
-        })
+            # === Searchable Functional Role (NEW) ===
 
-    except KeyError as e:
-        print(f"Skipping doc due to missing key: {e}")
-        continue
+            # === AI-Generated Enrichment ===
+            "ai_json": {
+                "type": "nested",
+                "properties": {
+                    "Step Number": { "type": "integer" },
+                    "Step Description": { "type": "text" },
+                    "Step Expected Result": { "type": "text" },
+                    "Details": {
+                        "type": "object",
+                        "properties": {
+                            "SAP T-code": { "type": "text" },
+                            "Field Instructions": {
+                                "type": "object",
+                                "properties": {
+                                    "Field": { "type": "text" },
+                                    "Value": { "type": "text" }
+                                }
+                            }
+                        }
+                    },
+                    "Detailed Instructions": {
+                        "type": "object",
+                        "properties": {
+                            "Action": { "type": "text" },
+                            "Field": { "type": "text" },
+                            "Value": { "type": "text" }
+                        }
+                    }
+                }
+            },
 
-# Step 3: Bulk insert into dev_index
-helpers.bulk(os_client, actions)
-print(f"Reindexed {len(actions)} documents to {NEW_ALIAS} using uuid5 IDs.")
+            # === Metrics ===
+            "metrics": {
+                "type": "nested",
+                "properties": {
+                    "name": { "type": "text" },
+                    "value": { "type": "float" },
+                    "note": { "type": "text" },
+                    "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
+                }
+            }
+        }
+    }
+}
+
+# # Step 2: Create hidden index
+# if not os_client.indices.exists(index=HIDDEN_INDEX):
+#     os_client.indices.create(index=HIDDEN_INDEX, body=mapping)
+#     print(f"Created index: {HIDDEN_INDEX}")
+# else:
+#     print(f"Index {HIDDEN_INDEX} already exists.")
+
+# # Step 3: Create alias for safer writes
+# os_client.indices.update_aliases(body={
+#     "actions": [
+#         { "add": { "index": HIDDEN_INDEX, "alias": ALIAS_NAME } }
+#     ]
+# })
+# print(f"Created alias: {ALIAS_NAME} -> {HIDDEN_INDEX}")
