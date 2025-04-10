@@ -6,11 +6,11 @@ POLICY_ID = "hackaton-no-delete"
 mapping = {
     "settings": {
         "number_of_shards": 5,
-        "number_of_replicas": 2,
+        "number_of_replicas": 2
     },
     "mappings": {
         "properties": {
-            
+
             ###
             # === Unique Identifier & Versioning ===
             # These data are populated after first crawl of Lake FS/ FocusBuild/ Zephyr
@@ -27,7 +27,7 @@ mapping = {
             "change_log": { "type": "keyword" },
             "sheet_name": { "type": "keyword" },
             "sheet_name_cleaned": { "type": "keyword" },
-            "source_pipeline": { "type": "keyword" }, # I haven't been using this...maybe legacy it?
+            "source_pipeline": { "type": "keyword" },  # I haven't been using this...maybe legacy it?
 
             # === Test Case Info ===
             "test_case_name": { "type": "text" },
@@ -76,73 +76,45 @@ mapping = {
             # === Schema Metadata ===
             "schema_version": { "type": "integer" },
             "ai_model": { "type": "keyword" },
-            
+
             ###
             # === Information Json ===
             # This is some portfolio specific importing stuff
+            ###
             "info_json": {
                 "type": "nested",
                 "properties": {
-                    "Test Case Type": { "type": "test" }, # zep OK # Test Plan Test Classification
-                    "Objective": { "type": "text" }, # zep Objective # not in focus
+                    "Test Case Type": { "type": "text" },  # zep OK # Test Plan Test Classification
+                    "Objective": { "type": "text" },        # zep Objective # not in focus
                     "Pre Condition": { "type": "keyword" }, # Precondition # not in focus
-                    "Test Data": { "type": "keyword" }, # zap Test Script (Step-by-Step) - Test Data # Evidence Attachment	
-                    'ITC Test Cycle(s) - Comma Separated:':  # In zep # MAP OUT ICT# form "TEST PLAN# <- Important
-                    "Other": { "type": "keyword" } # Chucking everything that is in the sheet here
-                }
-            },
-                    
-            ###
-            # == Legacy Items probably not needed anymore
-            "ai_population": { "type": "boolean" }, # Now a part of the even/odd _v system
-            "Functional Role": { "type": "text" }, # I have pulled this into the step_json, but I don't want to break anything
-            
-            "fb_json": { ## This information is getting chucked into a new "information" json
-                "type": "nested",
-                "properties": {
-                    "Screen Transactions": { "type": "keyword" },
-                    "Dev Object ID": { "type": "keyword" },
-                    "Other": { "type": "keyword" }
+                    "Test Data": { "type": "keyword" },     # zap Test Script (Step-by-Step) - Test Data # Evidence Attachment
+                    "ITC Test Cycle(s) - Comma Separated:": { "type": "keyword" },  # In zep # MAP OUT ICT# form "TEST PLAN# <- Important
+                    "Other": { "type": "keyword" }          # Chucking everything that is in the sheet here
                 }
             },
 
-            "zeb_json": {
-                "type": "nested",
-                "properties": {
-                    "Test Case Type": { "type": "keyword" },
-                    "Objective": { "type": "keyword" },
-                    "Pre Condition": { "type": "keyword" },
-                    "Test Data": { "type": "keyword" },
-                    "L4_L3_L2": { "type": "keyword" },
-                    "Doors ID": { "type": "keyword" },
-                    "Itc Cycle": { "type": "keyword" },
-                    "Other": { "type": "keyword" }
-                }
-            },
-            # ^^^ Legacy Items probably not needed anymore
-            ###
-            
             ###
             # === Human-Written Steps (NEW) ===
             # I have pulled a lot of stuff that might help inform the agent here.
+            ###
             "step_json": {
                 "type": "nested",
                 "properties": {
                     "Step Number": { "type": "integer" },
                     "Step Description": { "type": "text" },
                     "Step Expected Result": { "type": "text" },
-                    ### All of this stuff will have to get intdocued to the Ai
+                    ### All of this stuff will have to get introduced to the Ai
                     "Functional Role": { "type": "text" },
                     "Application": { "type": "text" },
                     "Screen-Transaction": { "type": "text" },
                     "Devolpment Object ID": { "type": "text" },
-                    "Instructions": { "type": "text" },
+                    "Instructions": { "type": "text" }
                 }
             },
 
-            # === Searchable Functional Role (NEW) ===
-
+            ###
             # === AI-Generated Enrichment ===
+            ###
             "ai_json": {
                 "type": "nested",
                 "properties": {
@@ -173,7 +145,9 @@ mapping = {
                 }
             },
 
+            ###
             # === Metrics ===
+            ###
             "metrics": {
                 "type": "nested",
                 "properties": {
@@ -182,22 +156,37 @@ mapping = {
                     "note": { "type": "text" },
                     "timestamp": { "type": "date", "format": "strict_date_optional_time||epoch_millis" }
                 }
+            },
+
+            ###
+            # === Legacy Items probably not needed anymore
+            ###
+            "ai_population": { "type": "boolean" },  # Now a part of the even/odd _v system
+            "Functional Role": { "type": "text" },   # I have pulled this into the step_json, but I don't want to break anything
+
+            "fb_json": {  # This information is getting chucked into a new "information" json
+                "type": "nested",
+                "properties": {
+                    "Screen Transactions": { "type": "keyword" },
+                    "Dev Object ID": { "type": "keyword" },
+                    "Other": { "type": "keyword" }
+                }
+            },
+
+            "zeb_json": {
+                "type": "nested",
+                "properties": {
+                    "Test Case Type": { "type": "keyword" },
+                    "Objective": { "type": "keyword" },
+                    "Pre Condition": { "type": "keyword" },
+                    "Test Data": { "type": "keyword" },
+                    "L4_L3_L2": { "type": "keyword" },
+                    "Doors ID": { "type": "keyword" },
+                    "Itc Cycle": { "type": "keyword" },
+                    "Other": { "type": "keyword" }
+                }
             }
+
         }
     }
 }
-
-# # Step 2: Create hidden index
-# if not os_client.indices.exists(index=HIDDEN_INDEX):
-#     os_client.indices.create(index=HIDDEN_INDEX, body=mapping)
-#     print(f"Created index: {HIDDEN_INDEX}")
-# else:
-#     print(f"Index {HIDDEN_INDEX} already exists.")
-
-# # Step 3: Create alias for safer writes
-# os_client.indices.update_aliases(body={
-#     "actions": [
-#         { "add": { "index": HIDDEN_INDEX, "alias": ALIAS_NAME } }
-#     ]
-# })
-# print(f"Created alias: {ALIAS_NAME} -> {HIDDEN_INDEX}")
