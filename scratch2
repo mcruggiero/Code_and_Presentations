@@ -1,49 +1,7 @@
-colors = colors.set_index("sid_key")
+We’re currently joining data from three main tables: Scorecard_Detail (with metadata and notes), Scorecard_Financial_Performance_History (with monthly financial metrics), and Scorecard_RYG_Criteria (with monthly color/status codes). Each table uses Scorecard_Detail_SID as a linking key, but we also create a custom sid_key in Python that combines the SID, year, and month fields to align time-series data. The joins are currently done downstream in pandas because attempting to perform these joins in SQL — especially across large volumes and with date-matching logic — is too slow to be usable. Even moderate-size INNER JOIN operations across all three tables quickly become impractical, leading to long runtimes or timeouts. By contrast, Python gives us the flexibility to perform partial joins and fallback logic while preserving runtime efficiency.
 
-financial_performance = financial_performance.set_index("sid_key")
+The problem is that joining all three tables directly in SQL is prohibitively slow, and inner joins cause significant row loss due to mismatches in monthly data. For example, we observe 1,150 unique SIDs in Scorecard_Detail, 911 in Financial_Performance, and 1,325 in RYG_Criteria. A strict SQL join would result in dropping many SIDs that are essential to the analysis. To work around this, our Python code falls back to prior months (up to three months earlier) if an exact monthly match isn’t found — preserving more data for modeling.
 
-colors_dict = colors.T.to_dict()
-financial_performance_dict = financial_performance.T.to_dict()
+We’re requesting a materialized view (or possibly a staging table) that pre-joins these sources with the business logic described above. This view should include the computed sid_key, all necessary joins, and optionally use SQL techniques like ROW_NUMBER() or LAG() to return the most recent available financial or color entry if the exact month isn’t present. The goal is to centralize this join logic upstream, so our modeling pipeline can rely on a single consistent dataset without having to replicate these merges manually.
 
-complete_info = {}
-for sid_key in colors_dict.keys():
-    
-    if sid_key in colors_dict and sid_key in financial_performance_dict:
-        complete_info[sid_key] = {**colors_dict[sid_key], **financial_performance_dict[sid_key]}
-    else:
-        complete_info[sid_key] = colors_dict[sid_key]
-
-df_dict = detail.T.to_dict()
-
-success_count = {"fail":0, "success":0, "retries":0} 
-for index, value in df_dict.items():
-    
-    sid_key = value["sid_key"]
-    
-    if sid_key in complete_info:
-        
-        df_dict[index] = {**value, **complete_info[sid_key]}
-        success_count["success"] += 1
-    
-    else:
-        
-        month_tries = [x for x in range(1,14)] + [-1,-2,-3]
-        for i in month_tries:
-            
-            sid_split = sid_key.split(".")
-            date = pd.Timestamp(f'{sid_split[1]}-{sid_split[2]}-01')
-            one_less_month = date - pd.DateOffset(months=i)
-            one_less_month = one_less_month.strftime('%Y.%m')
-            
-            new_sid_key = f"{sid_split[0]}.{one_less_month}"
-            
-            if new_sid_key in complete_info:
-                
-                df_dict[index] = {**value, **complete_info[new_sid_key]}
-                success_count["retries"] += 1
-                break
-            
-            if i == -3:
-                success_count["fail"] += 1
-                
-df = pd.DataFrame(df_dict).T
+If implemented, this view would significantly improve performance and data consistency across teams. It should be based on a left join from Scorecard_Detail, ensuring that no valid records are lost, even if financial or color data is missing for a given month. We're happy to share the current pandas logic or assist in validating the view once it's built.
