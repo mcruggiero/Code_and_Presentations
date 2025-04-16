@@ -1,118 +1,49 @@
-# Update active line in this table
+colors = colors.set_index("sid_key")
 
-SQL_QUERY = """
-SELECT
+financial_performance = financial_performance.set_index("sid_key")
 
-    /* Notes */
-    Scorecard_Detail.Scorecard_Detail_SID AS SID,
+colors_dict = colors.T.to_dict()
+financial_performance_dict = financial_performance.T.to_dict()
 
-    Scorecard_Detail_Note.Scorecard_Detail_Note_SID,
-    Scorecard_Detail_Note.Scorecard_Note,
-    YEAR(Scorecard_Detail_Note.Modified_Date) AS Note_Year,
-    RIGHT(
-        '0'  + CONVERT(VARCHAR(2), 
-        Month( Scorecard_Detail_Note.Modified_Date )), 2) AS Note_Month,
+complete_info = {}
+for sid_key in colors_dict.keys():
+    
+    if sid_key in colors_dict and sid_key in financial_performance_dict:
+        complete_info[sid_key] = {**colors_dict[sid_key], **financial_performance_dict[sid_key]}
+    else:
+        complete_info[sid_key] = colors_dict[sid_key]
+
+df_dict = detail.T.to_dict()
+
+success_count = {"fail":0, "success":0, "retries":0} 
+for index, value in df_dict.items():
+    
+    sid_key = value["sid_key"]
+    
+    if sid_key in complete_info:
+        
+        df_dict[index] = {**value, **complete_info[sid_key]}
+        success_count["success"] += 1
+    
+    else:
+        
+        month_tries = [x for x in range(1,14)] + [-1,-2,-3]
+        for i in month_tries:
             
-    /* Details */
-    Scorecard_Detail.PO_Number,
-    Scorecard_Detail.PO_Contract_Type,
-    Scorecard_Detail.PO_Complexity_Level,
-    Scorecard_Detail.PO_Lifecycle_Phase,
-    Scorecard_Detail.Supplier_Name,
-    Scorecard_Detail.LM_Vendor_ID,
-    Scorecard_Detail.Supplier_Site_Location,
-    Scorecard_Detail.Supplier_DandB_Number,
-    Scorecard_Detail.LOB_Name,
-    Scorecard_Detail.Program_Name,
-    Scorecard_Detail.Prime_Contract_Number,
-    Scorecard_Detail.Program_Contract_Type,
-    Scorecard_Detail.PO_Contract_Dollars_Mil,
-    Scorecard_Detail.PO_Funding_Dollars_Mil,
-    Scorecard_Detail.PO_Definitization_Status,
-    Scorecard_Detail.UCA_Start_Date,
-    Scorecard_Detail.UCA_Age,
-    Scorecard_Detail.EVM_Ind,
-    Scorecard_Detail.PO_Funding_Override_Ind,
-    Scorecard_Detail.PO_Contract_Override_Ind,
-    Scorecard_Detail.PO_Definitization_Date,
-    Scorecard_Detail.Performance_Management_Type
-
-FROM 
-    Scorecard_Detail_Note 
-    
-INNER JOIN 
-    Scorecard_Detail
-ON 
-    Scorecard_Detail_Note.Scorecard_Detail_SID = Scorecard_Detail.Scorecard_Detail_SID
-"""
-
-detail = db.query(SQL_QUERY)
-detail["sid_key"] = detail["SID"].apply(lambda x: f"{x:06d}") + "." + detail["Note_Year"].astype(str) + "." + detail["Note_Month"].astype(str)
-
-====
-
-SQL_QUERY = """
-SELECT
-    
-    /* Financials */
-    Scorecard_Financial_Performance_History.Scorecard_Financial_Performance_History_SID,
-    Scorecard_Financial_Performance_History.Scorecard_Month_Year,
-    Scorecard_Financial_Performance_History.BAC_Dollars,
-    Scorecard_Financial_Performance_History.BCWS_Dollars,
-    Scorecard_Financial_Performance_History.BCWP_Dollars,
-    Scorecard_Financial_Performance_History.ACWP_Dollars,
-    Scorecard_Financial_Performance_History.ETC_Dollars,
-    Scorecard_Financial_Performance_History.MR_Dollars,
-    Scorecard_Financial_Performance_History.Schedule_Percent,
-    Scorecard_Financial_Performance_History.Complete_Percent,
-    Scorecard_Financial_Performance_History.Spent_Percent_EAC,
-    Scorecard_Financial_Performance_History.Spent_Percent_BAC,
-    Scorecard_Financial_Performance_History.EAC_Dollars,
-    Scorecard_Financial_Performance_History.VAC_Dollars,
-    Scorecard_Financial_Performance_History.VAC_Percent,
-    Scorecard_Financial_Performance_History.SV_Dollars,
-    Scorecard_Financial_Performance_History.SV_Percent,
-    Scorecard_Financial_Performance_History.CV_Dollars,
-    Scorecard_Financial_Performance_History.CV_Percent,
-    Scorecard_Financial_Performance_History.SPI_Average,
-    Scorecard_Financial_Performance_History.CPI_Average,
-    Scorecard_Financial_Performance_History.TCPI_Average,
-    Scorecard_Financial_Performance_History.Scorecard_Detail_SID AS SID,
-    Scorecard_Financial_Performance_History.Created_Date,
-    Scorecard_Financial_Performance_History.Modified_Date,
-    
-    RIGHT(Scorecard_Financial_Performance_History.Scorecard_Month_Year, 2) AS Financial_Month,
-    LEFT(Scorecard_Financial_Performance_History.Scorecard_Month_Year, 4) AS Financial_Year
-    
-FROM 
-    Scorecard_Financial_Performance_History
-"""
-
-financial_performance = db.query(SQL_QUERY)
-financial_performance["sid_key"] = financial_performance["SID"].apply(lambda x: f"{x:06d}") + "." + financial_performance["Financial_Year"].astype(str) + "." + financial_performance["Financial_Month"].astype(str)
-
-====
-
-SQL_QUERY = """
-SELECT
-    
-    /* Criteria */
-    Scorecard_RYG_Criteria.Scorecard_Detail_SID AS SID,
-    Scorecard_RYG_Criteria.Scorecard_RYG_Criteria_SID,
-    Scorecard_RYG_Criteria.RYG_Criteria_SID,
-    Scorecard_RYG_Criteria.Color_Code,
-    Scorecard_RYG_Criteria.Report_Year,
-    Scorecard_RYG_Criteria.Report_Month,
-    Scorecard_RYG_Criteria.Override_Ind,
-    Scorecard_RYG_Criteria.Issue_Description
-    
-FROM 
-    Scorecard_RYG_Criteria
-WHERE
-    Scorecard_RYG_Criteria.RYG_Criteria_SID = 1
-"""
-
-colors = db.query(SQL_QUERY)
-colors["sid_key"] = colors["SID"].apply(lambda x: f"{x:06d}") + "." + colors["Report_Year"].astype(str) + "." + colors["Report_Month"].astype(str)
-
-colors.head().T
+            sid_split = sid_key.split(".")
+            date = pd.Timestamp(f'{sid_split[1]}-{sid_split[2]}-01')
+            one_less_month = date - pd.DateOffset(months=i)
+            one_less_month = one_less_month.strftime('%Y.%m')
+            
+            new_sid_key = f"{sid_split[0]}.{one_less_month}"
+            
+            if new_sid_key in complete_info:
+                
+                df_dict[index] = {**value, **complete_info[new_sid_key]}
+                success_count["retries"] += 1
+                break
+            
+            if i == -3:
+                success_count["fail"] += 1
+                
+df = pd.DataFrame(df_dict).T
