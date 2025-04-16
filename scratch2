@@ -1,7 +1,65 @@
-We’re currently joining data from three main tables: Scorecard_Detail (with metadata and notes), Scorecard_Financial_Performance_History (with monthly financial metrics), and Scorecard_RYG_Criteria (with monthly color/status codes). Each table uses Scorecard_Detail_SID as a linking key, but we also create a custom sid_key in Python that combines the SID, year, and month fields to align time-series data. The joins are currently done downstream in pandas because attempting to perform these joins in SQL — especially across large volumes and with date-matching logic — is too slow to be usable. Even moderate-size INNER JOIN operations across all three tables quickly become impractical, leading to long runtimes or timeouts. By contrast, Python gives us the flexibility to perform partial joins and fallback logic while preserving runtime efficiency.
+{
+  "SID": "string",  # Primary identifier from Scorecard_Detail, shared across all sources
+  "Note_ID": "int",  # Unique identifier from Scorecard_Detail_Note
 
-The problem is that joining all three tables directly in SQL is prohibitively slow, and inner joins cause significant row loss due to mismatches in monthly data. For example, we observe 1,150 unique SIDs in Scorecard_Detail, 911 in Financial_Performance, and 1,325 in RYG_Criteria. A strict SQL join would result in dropping many SIDs that are essential to the analysis. To work around this, our Python code falls back to prior months (up to three months earlier) if an exact monthly match isn’t found — preserving more data for modeling.
+  "sid_key": "string",  # Custom key combining SID + year + month, used for joining: '000123.2023.08'
 
-We’re requesting a materialized view (or possibly a staging table) that pre-joins these sources with the business logic described above. This view should include the computed sid_key, all necessary joins, and optionally use SQL techniques like ROW_NUMBER() or LAG() to return the most recent available financial or color entry if the exact month isn’t present. The goal is to centralize this join logic upstream, so our modeling pipeline can rely on a single consistent dataset without having to replicate these merges manually.
+  "Note_Text": "string",  # Full note text from Scorecard_Detail_Note
+  "Note_Color": "string",  # Color code from Scorecard_RYG_Criteria (e.g., G/Y/R)
+  "Note_Date": "date",  # Timestamp of the note (Modified_Date)
+  "Note_Year": "int",  # Extracted from Note_Date
+  "Note_Month": "string",  # 2-digit string month (e.g., '01', '12')
 
-If implemented, this view would significantly improve performance and data consistency across teams. It should be based on a left join from Scorecard_Detail, ensuring that no valid records are lost, even if financial or color data is missing for a given month. We're happy to share the current pandas logic or assist in validating the view once it's built.
+  "Color_Override_Ind": "boolean",  # Whether the color was manually overridden
+  "Color_Issue_Description": "string",  # Optional description of color justification or concerns
+
+  # Latest Financial Data (joined using most recent match <= Note_Date)
+  "BAC_Dollars": "float",
+  "BCWS_Dollars": "float",
+  "BCWP_Dollars": "float",
+  "ACWP_Dollars": "float",
+  "ETC_Dollars": "float",
+  "MR_Dollars": "float",
+  "EAC_Dollars": "float",
+  "VAC_Dollars": "float",
+  "VAC_Percent": "float",
+  "SV_Dollars": "float",
+  "SV_Percent": "float",
+  "CV_Dollars": "float",
+  "CV_Percent": "float",
+  "Schedule_Percent": "float",
+  "Complete_Percent": "float",
+  "Spent_Percent_EAC": "float",
+  "Spent_Percent_BAC": "float",
+  "SPI_Average": "float",
+  "CPI_Average": "float",
+  "TCPI_Average": "float",
+
+  "Financial_Year": "int",  # Extracted from Scorecard_Month_Year
+  "Financial_Month": "string",  # Last two digits of Scorecard_Month_Year (e.g., '06')
+  "Financial_Match_Date": "string",  # 'YYYY.MM' used to confirm which record was matched
+
+  # Contextual Metadata from Scorecard_Detail
+  "PO_Number": "string",
+  "PO_Contract_Type": "string",
+  "PO_Complexity_Level": "int",
+  "PO_Lifecycle_Phase": "string",
+  "Supplier_Name": "string",
+  "LM_Vendor_ID": "string",
+  "Supplier_Site_Location": "string",
+  "Supplier_DandB_Number": "string",
+  "LOB_Name": "string",
+  "Program_Name": "string",
+  "Prime_Contract_Number": "string",
+  "Program_Contract_Type": "string",
+  "PO_Contract_Dollars_Mil": "float",
+  "PO_Funding_Dollars_Mil": "float",
+  "PO_Definitization_Status": "string",
+  "UCA_Start_Date": "date",
+  "UCA_Age": "int",
+  "EVM_Ind": "boolean",
+  "PO_Funding_Override_Ind": "boolean",
+  "PO_Contract_Override_Ind": "boolean",
+  "PO_Definitization_Date": "date",
+  "Performance_Management_Type": "string"
+}
